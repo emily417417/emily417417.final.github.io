@@ -1,12 +1,66 @@
 ---
-title: "P8105 Final Project"
+title: "The relationship between illicit drug use and billboard music chart"
 output: 
   html_document:
+    code_folding: hide
     toc: true
     toc_float: true
-    theme: cerulean
 ---
+<style type="text/css">
 
-# 
+h1.title {
+  text-align: center;
+}
+
+</style>
+
+&nbsp;
+
+<center>
+<img src="./drugs-and-music-relapses.jpg" style="width:75%" class="center">
+<br>Image source: [Medical Daily](https://www.medicaldaily.com/)
+</center>
+&nbsp;
+
+# About the Project
+Illicit drug use is a major public health issue in United States. Previous studies showed a relationship between illicit drug use and pop music [[1](https://pubmed.ncbi.nlm.nih.gov/30599351/),[2](https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433)], indicating that pop music may have a potential encouraging effect on illicit drug use [[3](https://pubmed.ncbi.nlm.nih.gov/18250243/)]. However, these studies are either cross-sectional, or need to be reproduce using more recent data.
+
+The intended final products will describe the trend of music genre, frequency of illicit drug in the popular music, and the relationship between popular music and illicit drug use.
+
+&nbsp;
+
+# Website Overview
+Data for this project was acquired from the Mapping Police Violence group for data on police violence in the United States, the ACLED US Crisis Monitor for data on 2020 Black Lives Matter protests in the United States, the American Community Survey for data on race and income by county, and the US Census for information on overall population breakdown by race.
+
+In the Exploratory Analyses tab, you will find:
+<ul>
+<li>Analyses of mapping police violence data, through visualizations,</li>
+<li>Analyses of protest data, through visualizations; and,</li>
+</ul>
+
+In the Regression Analyses tab, you will find:
+<ul>
+<li>Logistic analyses investigating police violence data through charges laid against police and reported symptoms of mental illness as outcomes; and,</li>
+<li>Poisson and negative binomial models investigating associations between income at the county-level and number of protests per county.</li>
+</ul>
+
+The interactive maps tab will lead you to a dashboard that includes interactive maps and plots that will change depending on your selection. From here, you can explore instances of police violence and protests held over time geographically.
+
+&nbsp;
+
+# Additional Information
+1. Visit the [Project Report](proj_report.html) tab in the upper right of the website for a full page write-up on what was done from start to finish in this project; and
+2. Visit our project Youtube video, linked in the upper right corner of the website, for a brief introduction and overview of the project.
+
+&nbsp;
+
+**Collaborators:**
+<ul>
+<li>[Rebekah Hughes](https://rebekahhughes97.github.io/)</li>
+<li>[Megan Marziali](https://meganmarziali.github.io)</li>
+<li>[Leighanne Wang](https://leighannewang.github.io)</li>
+<li>[Jinghan Zhang](http://jinghan-zhang16.github.io/)</li>
+<li>[Adam Rosenfeld](https://adm-ra.github.io/)</li>
+</ul>
 
 
