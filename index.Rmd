@@ -30,7 +30,11 @@ The intended final products will describe the trend of music genre, frequency of
 &nbsp;
 
 # Website Overview
-Data for this project was acquired from the Mapping Police Violence group for data on police violence in the United States, the ACLED US Crisis Monitor for data on 2020 Black Lives Matter protests in the United States, the American Community Survey for data on race and income by county, and the US Census for information on overall population breakdown by race.
+Data for this project includes two components: the Popular Music Data and the Illicit Drug Use Data. 
+The Popular Music Data acquired from [Data on Songs from Billboard 1999-2019](https://www.kaggle.com/danield2255/data-on-songs-from-billboard-19992019). The dataset contains the time of release, music genre, peak rank, and lyrics.
+The Illicit Drug Use Data acquired from [National Survey on Drug Use and Health (NSDUH) 1999-2019](https://www.datafiles.samhsa.gov/dataset/national-survey-drug-use-and-health-2019-nsduh-2019-ds0001). The dataset is for state-level small area estimates (SAEs), associated confidence intervals, and other key statistics related to state-level, model-based estimates of certain key substance use and mental health outcomes.
+
+
 
 In the Exploratory Analyses tab, you will find:
 <ul>
