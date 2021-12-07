@@ -1,0 +1,263 @@
+---
+title: "Data cleaning step"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+
+In this page, the data cleaning process is described.
+
+# Data source and the data cleaning goal
+
+- __Data source__
+  
+  - __Popular music data__: [Data on Songs from Billboard 1999-2019](https://www.kaggle.com/danield2255/data-on-songs-from-billboard-19992019) collected the data of Billboard Hot 100 music chart from July 11, 1999 to July 5, 2019. The data set contains current weeks the song has been on the chart, music genre, peak rank, and full explicit lyrics.
+
+  - __Illicit drug usage data__: The NSDUH series, formerly the National Household Survey on Drug Abuse, is the leading source of statistical information on the use of illicit drugs, alcohol, and tobacco and mental health issues in the United States. The population of the NSDUH series is the general civilian population aged 12 and older. Questions include age at first use, as well as lifetime, annual, and past-month use of alcohol, marijuana, and other substances, as well as the perceptions on the substances. In this project, we used [National Survey on Drug Use and Health (NSDUH) 1999-2019](https://www.datafiles.samhsa.gov/dataset/national-survey-drug-use-and-health-2019-nsduh-2019-ds0001) to analyse the substance use.  The data set is has both state-level and national-level small area estimates (SAEs) and associated confidence intervals.
+
+  - __Substance word list__: We included 2 word lists from an addiction center [website](https://www.addictioncenter.com/). They are [Drug Street Names](https://www.addictioncenter.com/drugs/drug-street-names/) and [Drug And Alcohol Slang Terms](https://www.addictioncenter.com/drugs/drug-alcohol-slang/).
+
+- The final data for analysis should be:
+  - A data set combining both substance use information and portrayals of substance use in songs, by year
+  - A data set describing the frequency and annual rate (with 95% confidence interval) of songs in different genre (hip-hop/R&B, rap, rock, and country) and songs mentioning substances (alcohol, marijuana, other illicit drugs), by year.
+
+# Cleaning process
+
+- First, load data
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(rvest)
+library(httr)
+library(kaggler)
+library(haven)
+
+kgl_auth(creds_file = 'kaggle.json')
+
+response <- kgl_datasets_download_all(owner_dataset = "danield2255/data-on-songs-from-billboard-19992019")
+
+download.file(response[["url"]], "data/temp.zip", mode = "wb")
+unzip_result <- unzip("data/temp.zip", exdir = "./data", overwrite = TRUE)
+
+billboard = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv") %>%
+  janitor::clean_names() %>%
+  select(week,name,genre,lyrics) %>%
+  mutate(year = format(week, "%Y"),
+         lyrics = str_to_lower(str_replace(lyrics, "\n"," ")),
+         genre = str_to_lower(genre)) %>%
+  select(-week)
+
+word_bank_genre_raw = pull(billboard, genre) %>%
+  unlist() %>%
+  unique() %>%
+  as_tibble()
+
+write.csv(word_bank_genre_raw, file = "./data/word_bank_genre_raw_ling.csv")
+
+word_bank_raw = read_html("https://www.addictioncenter.com/drugs/drug-street-names/") %>%
+  html_table(header = T)
+
+word_bank_raw2 =  read_html("https://www.addictioncenter.com/drugs/drug-alcohol-slang/") %>%
+  html_table(header = F) %>%
+  .[-c(1,2,3)] %>%
+  bind_rows() %>%
+  select(X2) %>%
+  mutate(slang = str_split(str_to_lower(X2), ',')) %>%
+  select(slang) %>%
+  unlist() %>%
+  as_tibble()
+
+word_bank_alcohol = read_html("https://www.addictioncenter.com/drugs/drug-alcohol-slang/") %>%
+  html_table(header = F) %>%
+  nth(2) %>%
+  janitor::clean_names() %>%
+  select(x2) %>%
+  mutate(x2 = str_split(str_to_lower(x2), ',')) %>%
+  unlist() %>%
+  as_tibble()
+
+write.csv(word_bank_alcohol, file = "./data/alcohol_bank_raw_ling.csv")
+
+drug_bank <- function(raw , var) {
+  out = raw %>%
+  janitor::clean_names() %>%
+  select({{var}}) %>%
+  mutate(slang = str_split(str_to_lower({{var}}), ',')) %>%
+  select(slang) %>%
+  unlist() %>%
+  as_tibble()
+  return(out)
+}
+
+illicit_names = word_bank_raw[[3]] %>%
+  janitor::clean_names()
+
+word_bank_bdz = drug_bank(word_bank_raw[[1]], var = street_names)
+word_bank_hallucinogens = drug_bank(word_bank_raw[[2]], var = street_names)
+word_bank_inhalant = drug_bank(word_bank_raw[[4]], var = street_names)
+word_bank_opioid = drug_bank(word_bank_raw[[5]], var = street_names)
+word_bank_overcounter = drug_bank(word_bank_raw[[6]], var = street_names)
+word_bank_marijuana = drug_bank(subset(illicit_names, common_name %in% c("Marijuana", "Synthetic Marijuana")), var = other_names)
+word_bank_illicit = drug_bank(subset(illicit_names, !(common_name %in% c("Marijuana", "Synthetic Marijuana"))), var = other_names)
+word_bank_other = bind_rows(word_bank_bdz, word_bank_hallucinogens, word_bank_illicit, word_bank_inhalant, word_bank_opioid, word_bank_overcounter, word_bank_raw2)
+word_bank_marijuana2 = read_html("https://www.addictioncenter.com/drugs/drug-alcohol-slang/") %>%
+  html_table(header = F) %>%
+  nth(3) %>%
+  select(X2) %>%
+  mutate(slang = str_split(str_to_lower(X2), ',')) %>%
+  unlist() %>%
+  as_tibble()
+word_bank_marijuana = bind_rows(word_bank_marijuana, word_bank_marijuana2)
+
+write_csv(word_bank_other, file = "./data/other_illicit_bank_raw_ling.csv")
+write_csv(word_bank_marijuana, file = "./data/marijuana_bank_raw_ling.csv")
+
+
+# clean the abuse data
+download.file(url = "https://www.datafiles.samhsa.gov/sites/default/files/NSDUH_files/SAE/NSDUH_99_19_state_saes_final.sas7bdat", 
+                      destfile = "./data/abuse.sas7bdat", mode = "wb")
+abuse_df = read_sas(data_file = "./data/abuse.sas7bdat")
+abuse = abuse_df %>%
+  janitor::clean_names() %>%
+  select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %>%
+  filter(outcome %in% c("COCYR", "IEMMON","MRJMON","SUMMON","INCIDENCE","BNGALC","RISKMJ") & pyear != "11" & agegrp %in% c(1,2,3)) %>%
+  mutate(outcome = fct_recode(as_factor(outcome), "Cocaine use in the last year" = "COCYR",
+                                                  "Illicit drugs other than marijuana use in the last month" = "IEMMON",
+                                                  "Marijuana use in the past month" = "MRJMON",
+                                                  "Any illicit drug use in the last month" = "SUMMON",
+                                                  "Annual incidence of first use of marijuana" = "INCIDENCE",
+                                                  "Binge drinking in the last month" = "BNGALC",
+                                                  "Risk perception on smoking marijuana once a month" = "RISKMJ"),
+         pyearnm = substr(pyearnm, 1,9),
+         pyearnm = fct_reorder(as.factor(pyearnm), pyear),
+         agegrp = fct_recode(as_factor(agegrp), "12-18 y/o" = "1",
+                                                "18-25 y/o" = "2",
+                                                ">=26 y/o" = "3"),
+         area = as.factor(area),
+         stname = as.factor(stname),
+         bsae = 100 * bsae,
+         low_sae = 100 * low_sae,
+         up_sae = 100 * up_sae,
+         year = as.numeric(substr(pyearnm,1,4))) %>%
+  select(-pyear, -state)
+
+```
+
+Clean the manually classified music genre and alcohol word bank.
+```{r}
+
+genre = read_csv(file = "./data/word_bank_genre_code_ling.csv",
+                         col_names = TRUE,
+                         na = "") %>%
+  select(-...1) %>%
+  group_by(genre_cate) %>%
+  summarise(subgenre = paste(value, collapse = "|")) %>%
+  drop_na(genre_cate)
+
+country = pull(subset(genre, genre_cate == "country"), subgenre)
+hiphop = pull(subset(genre, genre_cate == "hip-hop/r&;b"), subgenre)
+rap = pull(subset(genre, genre_cate == "rap"), subgenre)
+rock = pull(subset(genre, genre_cate == "rock"), subgenre)
+
+
+alcohol_summary = read_csv(file = "./data/alcohol_bank_code_ling.csv",
+                           col_names = TRUE,
+                           na = "") %>%
+  select(-...1) %>%
+  filter(is.na(delete)) %>%
+  select(value)
+
+write_csv(alcohol_summary, file = "./data/word_bank_alcohol_summary_ling.csv")
+```
+Load word banks
+```{r}
+words_alcohol = read_lines("./data/words/alcohol.csv")
+regex_alcohol = paste(words_alcohol,collapse = " | ")
+
+words_marijuana = read_lines("./data/words/marijuana.csv")
+regex_marijuana = paste(words_marijuana,collapse = " | ")
+
+words_other = read_lines("./data/words/other_illicit.csv")
+regex_other = paste(words_other,collapse = " | ")
+```
+Categorization
+```{r}
+# individual song data
+billboard_1 = billboard %>%
+  select(name, year, genre,lyrics) %>%
+  mutate(lyr_alcohol = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
+         lyr_marijuana = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
+         lyr_other = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)),
+         gen_country = as.numeric(grepl(country, genre, ignore.case = TRUE)),
+         gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
+         gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
+         gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))) %>%
+  select(-genre, -lyrics) 
+
+write_csv(billboard_1, file = "./data/billboard_classification.csv", col_names = TRUE)
+
+# music lyrics, using summary data
+songs = read_csv("./data/songs_per_year.csv",
+                     col_names = TRUE) %>%
+  select(-...1) %>%
+  pivot_longer(cols = starts_with("n_"), names_to = "description", values_to = "n_lyrics", names_prefix = "n_") %>%
+  group_by(year, description) %>%
+  mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
+         p_ci = map(p_result, pluck("conf.int")),
+         p_lci = 100*(min(unlist(p_ci))),
+         p_uci = 100*(max(unlist(p_ci)))) %>%
+  select(-p_result, -p_ci)
+
+# connnect the songs and the abuse data
+songs_abuse = left_join(songs, abuse, by = "year")
+
+write_csv(songs_abuse, file = "./data/songs_abuse.csv", col_names = TRUE)
+
+# lyrics * genre, summary data
+genly_billboard = billboard_1 %>%
+  pivot_longer(cols = starts_with("lyr_"),
+               names_to = "lyric_des",
+               values_to = "lyric_yn",
+               names_prefix = "lyr_") %>%
+  pivot_longer(cols = starts_with("gen_"),
+               names_to = "gen_cate",
+               values_to = "gen_yn",
+               names_prefix = "gen_") %>%
+  mutate(lyr_gen = as_factor(paste(lyric_des, gen_cate, sep = ",")),
+         lyr_gen_yn = if_else(lyric_yn == 1 & gen_yn == 1, 1, 0)) %>%
+  group_by(lyr_gen, year, gen_cate) %>%
+  summarize(n_lyr = sum(lyric_yn == 1),
+            total = n(),
+            n_gen = sum(gen_yn == 1),
+            n_lyr_gen = sum(lyr_gen_yn == 1)) %>%
+  mutate(p_lyr_res = map2(.x = n_lyr, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrics = unlist(map(p_lyr_res, pluck("estimate"))),
+         p_lyr_ci = map(p_lyr_res, pluck("conf.int")),
+         p_lyr_lci = min(unlist(p_lyr_ci)),
+         p_lyr_uci = max(unlist(p_lyr_ci)),
+         p_gen_res = map2(.x = n_gen, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_genre = unlist(map(p_gen_res, pluck("estimate"))),
+         p_gen_ci = map(p_gen_res, pluck("conf.int")),
+         p_gen_lci = min(unlist(p_gen_ci)),
+         p_gen_uci = max(unlist(p_gen_ci)),
+         p_lyrgen_res = map2(.x = n_lyr_gen, .y = n_gen, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrgen = unlist(map(p_lyrgen_res, pluck("estimate"))),
+         p_lyrgen_ci = map(p_lyrgen_res, pluck("conf.int")),
+         p_lyrgen_lci = min(unlist(p_lyrgen_ci)),
+         p_lyrgen_uci = max(unlist(p_lyrgen_ci)),
+         lyr_des = str_split(lyr_gen, ","),
+         lyr_des = first(unlist(lyr_des)),
+         year = as.numeric(year)) %>%
+  select(-p_lyr_res, -p_lyr_ci, -p_gen_res, -p_gen_ci, -p_lyrgen_res,-p_lyrgen_ci) %>%
+  arrange(year) %>%
+  relocate(year, lyr_des, gen_cate, lyr_gen, n_lyr, n_gen, n_lyr_gen)
+
+write_csv(genly_billboard, file = "./data/genly_billboard.csv", col_names = TRUE)
+```
+
+
