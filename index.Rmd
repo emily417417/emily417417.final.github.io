@@ -23,7 +23,7 @@ h1.title {
 &nbsp;
 
 # About the Project
-Illicit drug use is a major public health issue in United States. Previous studies showed a relationship between illicit drug use and pop music [[1](https://pubmed.ncbi.nlm.nih.gov/30599351/),[2](https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433)], indicating that pop music may have a potential encouraging effect on illicit drug use [[3](https://pubmed.ncbi.nlm.nih.gov/18250243/)]. However, these studies are either cross-sectional, or need to be reproduce using more recent data.
+Illicit drug use is a major public health issue in United States. Previous studies showed a relationship between illicit drug use and pop music [1][2], indicating that pop music may have a potential encouraging effect on illicit drug use [3]. However, these studies are either cross-sectional, or need to be reproduce using more recent data.
 
 The intended final products will describe the trend of music genre, frequency of illicit drug in the popular music, and the relationship between popular music and illicit drug use.
 
@@ -58,13 +58,23 @@ The interactive maps tab will lead you to a dashboard that includes interactive 
 
 &nbsp;
 
-**Collaborators:**
+# Refernece
+<li>[1] Music festivals and drugs: Wastewater analysis
+(https://pubmed.ncbi.nlm.nih.gov/30599351/)
+<li>[2] Booze, Drugs, and Pop Music: Trends in Substance Portrayals in the Billboard Top 100
+(https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433/)
+<li>[3] Content analysis of tobacco, alcohol, and other drugs in popular music
+(https://pubmed.ncbi.nlm.nih.gov/18250243/)
+
+&nbsp;
+
+
+# Team members
 <ul>
-<li>[Rebekah Hughes](https://rebekahhughes97.github.io/)</li>
-<li>[Megan Marziali](https://meganmarziali.github.io)</li>
-<li>[Leighanne Wang](https://leighannewang.github.io)</li>
-<li>[Jinghan Zhang](http://jinghan-zhang16.github.io/)</li>
-<li>[Adam Rosenfeld](https://adm-ra.github.io/)</li>
+<li>[Ling Guo](https://Ling707_p8105hw4_github.io/)</li>
+<li>[Mingkuan Xu](https://Mingkuanxu.github.io)</li>
+<li>[Shibei Xu](https://shibeixxu.github.io)</li>
+<li>[Wenyi Liu](http://emily417417.github.io/)</li>
 </ul>
 
 
