@@ -27,7 +27,7 @@ In this page, the data cleaning process is described.
 
 - Lyrics
   - Music data
-    - Download the Billboard data from the website using `Kaggler`. It's a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as 'billboard'.
+    - Download the Billboard data from the website using `Kaggler`. It's a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as 'billboard'.*The unzip code is put into annotation because of error when knitting. For reproducing the result, please run the code after remove the "#."*
     - Keep the needed variables, and set all the strings lower case
     - Keep the year data
     - Because we are going to see the effect of the genre/lyrics instead of the real number of the songs, we did not delete duplicate songs and the data
@@ -35,7 +35,7 @@ In this page, the data cleaning process is described.
     - This data set is larger than 100Mb, so it's not pushed to the repository.
   
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE )
 
 library(tidyverse)
 library(rvest)
@@ -47,8 +47,8 @@ kgl_auth(creds_file = 'kaggle.json')
 
 response <- kgl_datasets_download_all(owner_dataset = "danield2255/data-on-songs-from-billboard-19992019")
 
-download.file(response[["url"]], "data/temp.zip", mode = "wb")
-#unzip_result <- unzip("data/temp.zip", exdir = "./data", overwrite = TRUE)
+download.file(response[["url"]], "./data/temp.zip", mode = "wb")
+#unzip_result <- unzip("./data/temp.zip", exdir = "./data", overwrite = TRUE)
 
 billboard = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv") %>%
   janitor::clean_names() %>%
@@ -176,7 +176,7 @@ regex_other = paste(words_other,collapse = " | ")
       - calculate the 95% confidence interval of the frequencies
     
 ```{r billboard summary}
-billboard = billboard %>%
+billboard_data = billboard %>%
    mutate(
     marijuana = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
     alcohol = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
@@ -186,38 +186,39 @@ billboard = billboard %>%
     gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
     gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))
     ) %>%
-    select(-lyrics, -genre)
+    select(-lyrics, -genre) 
 
-write_csv(billboard, file = "./data/billboard_cleaned.csv", col_names = TRUE)
 
-songs = billboard %>%
-    group_by(year) %>%
-    summarise(
-      total = n(),
-      n_marijuana = sum(marijuana),
-      n_alcohol = sum(alcohol),
-      n_other_illicit = sum(other_illicit)) %>%
-    pivot_longer(cols = starts_with("n_"), names_to = "description", values_to = "n_lyrics", names_prefix = "n_") %>%
+write_csv(billboard_data, file = "./data/billboard_cleaned.csv", col_names = TRUE)
+
+songs = billboard_data %>%
+    pivot_longer(cols = c("marijuana", "alcohol","other_illicit"),
+                 names_to = "lyr_des",
+                 values_to = "lyric_yn") %>%
+    group_by(year, lyr_des) %>%
+    summarise(n_lyrics = sum(lyric_yn == 1),
+              total = n()) %>%
     mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
            p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
-           p_ci = map(p_result, pluck("conf.int")),
-           p_lci = 100*(min(unlist(p_ci))),
-           p_uci = 100*(max(unlist(p_ci))),
+           p_ci = map(p_result, pluck("conf.int"))) %>%
+    unnest_wider(p_ci) %>%
+    rename("p_lci" = "...1",
+           "p_uci" = "...2") %>%
+    mutate(p_lci = 100 * p_lci,
+           p_uci = 100 * p_uci,
            year = as.numeric(year)) %>%
-    select(-p_result, -p_ci)
+    select(-p_result)
 
 knitr::kable(songs[1:5, ])
 
-genly_billboard = billboard %>%
+genly_billboard = billboard_data %>%
   pivot_longer(cols = c("marijuana", "alcohol","other_illicit"),
-               names_to = "lyric_des",
-               values_to = "lyric_yn",
-               names_prefix = "lyr_") %>%
+                 names_to = "lyr_des",
+                 values_to = "lyric_yn") %>%
   pivot_longer(cols = starts_with("gen_"),
                names_to = "gen_cate",
-               values_to = "gen_yn",
-               names_prefix = "gen_") %>%
-  mutate(lyr_gen = as_factor(paste(lyric_des, gen_cate, sep = ",")),
+               values_to = "gen_yn") %>%
+  mutate(lyr_gen = as_factor(paste(lyr_des, gen_cate, sep = ",")),
          lyr_gen_yn = if_else(lyric_yn == 1 & gen_yn == 1, 1, 0)) %>%
   group_by(lyr_gen, year, gen_cate) %>%
   summarize(n_lyr = sum(lyric_yn == 1),
@@ -225,20 +226,20 @@ genly_billboard = billboard %>%
             n_gen = sum(gen_yn == 1),
             n_lyr_gen = sum(lyr_gen_yn == 1)) %>%
   mutate(p_lyr_res = map2(.x = n_lyr, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrics = unlist(map(p_lyr_res, pluck("estimate"))),
+         p_lyrics = 100 * unlist(map(p_lyr_res, pluck("estimate"))),
          p_lyr_ci = map(p_lyr_res, pluck("conf.int")),
-         p_lyr_lci = min(unlist(p_lyr_ci)),
-         p_lyr_uci = max(unlist(p_lyr_ci)),
+         p_lyr_lci = 100 * min(unlist(p_lyr_ci)),
+         p_lyr_uci = 100 * max(unlist(p_lyr_ci)),
          p_gen_res = map2(.x = n_gen, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_genre = unlist(map(p_gen_res, pluck("estimate"))),
+         p_genre = 100 * unlist(map(p_gen_res, pluck("estimate"))),
          p_gen_ci = map(p_gen_res, pluck("conf.int")),
-         p_gen_lci = min(unlist(p_gen_ci)),
-         p_gen_uci = max(unlist(p_gen_ci)),
+         p_gen_lci = 100 * min(unlist(p_gen_ci)),
+         p_gen_uci = 100 * max(unlist(p_gen_ci)),
          p_lyrgen_res = map2(.x = n_lyr_gen, .y = n_gen, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrgen = unlist(map(p_lyrgen_res, pluck("estimate"))),
+         p_lyrgen = 100 * unlist(map(p_lyrgen_res, pluck("estimate"))),
          p_lyrgen_ci = map(p_lyrgen_res, pluck("conf.int")),
-         p_lyrgen_lci = min(unlist(p_lyrgen_ci)),
-         p_lyrgen_uci = max(unlist(p_lyrgen_ci)),
+         p_lyrgen_lci = 100 * min(unlist(p_lyrgen_ci)),
+         p_lyrgen_uci = 100 * max(unlist(p_lyrgen_ci)),
          lyr_des = str_split(lyr_gen, ","),
          lyr_des = first(unlist(lyr_des)),
          year = as.numeric(year),

@@ -280,7 +280,7 @@ div.tocify {
 <ul>
 <li>Music data
 <ul>
-<li>Download the Billboard data from the website using <code>Kaggler</code>. It’s a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as ‘billboard’.</li>
+<li>Download the Billboard data from the website using <code>Kaggler</code>. It’s a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as ‘billboard’.<em>The unzip code is put into annotation because of error when knitting. For reproducing the result, please run the code after remove the “#.”</em></li>
 <li>Keep the needed variables, and set all the strings lower case</li>
 <li>Keep the year data</li>
 <li>Because we are going to see the effect of the genre/lyrics instead of the real number of the songs, we did not delete duplicate songs and the data</li>
@@ -291,37 +291,6 @@ div.tocify {
 <ul>
 <li>The music genre word list is generated from the genre variable from the billboard data. Since there are over 300 genres in the original data set, we manually reclassified these genres into 4 categories: hip-hop/R&amp;B, country, rap, and rock. This classification is adapted from <a href="https://pubmed.ncbi.nlm.nih.gov/18250243/">Primak et al.</a>.</li>
 </ul></li>
-</ul></li>
-</ul>
-<pre class="r"><code>word_bank_genre_raw = pull(billboard, genre) %&gt;%
-  unlist() %&gt;%
-  unique() %&gt;%
-  as_tibble()
-
-write.csv(word_bank_genre_raw, file = &quot;./data/word_bank_genre_raw_ling.csv&quot;)
-
-genre = read_csv(file = &quot;./data/genre.csv&quot;,
-                         col_names = TRUE,
-                         na = &quot;&quot;) %&gt;%
-  select(-...1) %&gt;%
-  group_by(genre_cate) %&gt;%
-  summarise(subgenre = paste(value, collapse = &quot;|&quot;)) %&gt;%
-  drop_na(genre_cate)</code></pre>
-<pre><code>## New names:
-## * `` -&gt; ...1</code></pre>
-<pre><code>## Rows: 334 Columns: 3</code></pre>
-<pre><code>## -- Column specification --------------------------------------------------------
-## Delimiter: &quot;,&quot;
-## chr (2): value, genre_cate
-## dbl (1): ...1</code></pre>
-<pre><code>## 
-## i Use `spec()` to retrieve the full column specification for this data.
-## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
-<pre class="r"><code>country = pull(subset(genre, genre_cate == &quot;country&quot;), subgenre)
-hiphop = pull(subset(genre, genre_cate == &quot;hip-hop/r&amp;;b&quot;), subgenre)
-rap = pull(subset(genre, genre_cate == &quot;rap&quot;), subgenre)
-rock = pull(subset(genre, genre_cate == &quot;rock&quot;), subgenre)</code></pre>
-<ul>
 <li>Substance word list
 <ul>
 <li>Download the word lists from the website using <code>rvest</code> and <code>httr</code>, the 2 lists are named as <code>word_bank_raw</code> and <code>word_bank_raw2</code>, respectively.</li>
@@ -329,74 +298,6 @@ rock = pull(subset(genre, genre_cate == &quot;rock&quot;), subgenre)</code></pre
 <li>For each sublists, combine the strings together, separated by &quot; | &quot;.</li>
 <li>Combine the sublists describing the same (group of) substance together. Since the data for the substances other than alcohol and marijuana are limited, we combined the words describing the substances other than alcohol or marijuana together, taking <a href="https://pubmed.ncbi.nlm.nih.gov/18250243/">Primak et al.</a> as a reference.</li>
 </ul></li>
-</ul>
-<pre class="r"><code>word_bank_raw = read_html(&quot;https://www.addictioncenter.com/drugs/drug-street-names/&quot;) %&gt;%
-  html_table(header = T)
-
-word_bank_raw2 =  read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
-  html_table(header = F) %&gt;%
-  .[-c(1,2,3)] %&gt;%
-  bind_rows() %&gt;%
-  select(X2) %&gt;%
-  mutate(slang = str_split(str_to_lower(X2), &#39;,&#39;)) %&gt;%
-  select(slang) %&gt;%
-  unlist() %&gt;%
-  as_tibble()
-
-word_bank_alcohol = read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
-  html_table(header = F) %&gt;%
-  nth(2) %&gt;%
-  janitor::clean_names() %&gt;%
-  select(x2) %&gt;%
-  mutate(x2 = str_split(str_to_lower(x2), &#39;,&#39;)) %&gt;%
-  unlist() %&gt;%
-  as_tibble()
-
-write.csv(word_bank_alcohol, file = &quot;./data/alcohol_bank_raw_ling.csv&quot;)
-
-drug_bank &lt;- function(raw , var) {
-  out = raw %&gt;%
-  janitor::clean_names() %&gt;%
-  select({{var}}) %&gt;%
-  mutate(slang = str_split(str_to_lower({{var}}), &#39;,&#39;)) %&gt;%
-  select(slang) %&gt;%
-  unlist() %&gt;%
-  as_tibble()
-  return(out)
-}
-
-illicit_names = word_bank_raw[[3]] %&gt;%
-  janitor::clean_names()
-
-word_bank_bdz = drug_bank(word_bank_raw[[1]], var = street_names)
-word_bank_hallucinogens = drug_bank(word_bank_raw[[2]], var = street_names)
-word_bank_inhalant = drug_bank(word_bank_raw[[4]], var = street_names)
-word_bank_opioid = drug_bank(word_bank_raw[[5]], var = street_names)
-word_bank_overcounter = drug_bank(word_bank_raw[[6]], var = street_names)
-word_bank_marijuana = drug_bank(subset(illicit_names, common_name %in% c(&quot;Marijuana&quot;, &quot;Synthetic Marijuana&quot;)), var = other_names)
-word_bank_illicit = drug_bank(subset(illicit_names, !(common_name %in% c(&quot;Marijuana&quot;, &quot;Synthetic Marijuana&quot;))), var = other_names)
-word_bank_other = bind_rows(word_bank_bdz, word_bank_hallucinogens, word_bank_illicit, word_bank_inhalant, word_bank_opioid, word_bank_overcounter, word_bank_raw2)
-word_bank_marijuana2 = read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
-  html_table(header = F) %&gt;%
-  nth(3) %&gt;%
-  select(X2) %&gt;%
-  mutate(slang = str_split(str_to_lower(X2), &#39;,&#39;)) %&gt;%
-  unlist() %&gt;%
-  as_tibble()
-word_bank_marijuana = bind_rows(word_bank_marijuana, word_bank_marijuana2)
-
-write_csv(word_bank_other, file = &quot;./data/other_illicit_bank_raw_ling.csv&quot;)
-write_csv(word_bank_marijuana, file = &quot;./data/marijuana_bank_raw_ling.csv&quot;)
-
-words_alcohol = read_lines(&quot;./data/alcohol.csv&quot;)
-regex_alcohol = paste(words_alcohol,collapse = &quot; | &quot;)
-
-words_marijuana = read_lines(&quot;./data/marijuana.csv&quot;)
-regex_marijuana = paste(words_marijuana,collapse = &quot; | &quot;)
-
-words_other = read_lines(&quot;./data/other_illicit.csv&quot;)
-regex_other = paste(words_other,collapse = &quot; | &quot;)</code></pre>
-<ul>
 <li>Summarize the song information by year
 <ul>
 <li>substance description data (‘songs’ data)
@@ -411,45 +312,15 @@ regex_other = paste(words_other,collapse = &quot; | &quot;)</code></pre>
 <li>calculate the 95% confidence interval of the frequencies</li>
 </ul></li>
 </ul></li>
+</ul></li>
 </ul>
-<pre class="r"><code>billboard = billboard %&gt;%
-   mutate(
-    marijuana = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
-    alcohol = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
-    other_illicit = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)),
-    gen_country = as.numeric(grepl(country, genre, ignore.case = TRUE)),
-    gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
-    gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
-    gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))
-    ) %&gt;%
-    select(-lyrics, -genre)
-
-write_csv(billboard, file = &quot;./data/billboard_cleaned.csv&quot;, col_names = TRUE)
-
-songs = billboard %&gt;%
-    group_by(year) %&gt;%
-    summarise(
-      total = n(),
-      n_marijuana = sum(marijuana),
-      n_alcohol = sum(alcohol),
-      n_other_illicit = sum(other_illicit)) %&gt;%
-    pivot_longer(cols = starts_with(&quot;n_&quot;), names_to = &quot;description&quot;, values_to = &quot;n_lyrics&quot;, names_prefix = &quot;n_&quot;) %&gt;%
-    mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-           p_lyrics = 100*(unlist(map(p_result, pluck(&quot;estimate&quot;)))),
-           p_ci = map(p_result, pluck(&quot;conf.int&quot;)),
-           p_lci = 100*(min(unlist(p_ci))),
-           p_uci = 100*(max(unlist(p_ci))),
-           year = as.numeric(year)) %&gt;%
-    select(-p_result, -p_ci)
-
-knitr::kable(songs[1:5, ])</code></pre>
 <table>
 <thead>
 <tr class="header">
 <th align="right">year</th>
-<th align="right">total</th>
-<th align="left">description</th>
+<th align="left">lyr_des</th>
 <th align="right">n_lyrics</th>
+<th align="right">total</th>
 <th align="right">p_lyrics</th>
 <th align="right">p_lci</th>
 <th align="right">p_uci</th>
@@ -458,110 +329,68 @@ knitr::kable(songs[1:5, ])</code></pre>
 <tbody>
 <tr class="odd">
 <td align="right">1999</td>
-<td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.778325</td>
-<td align="right">1.261275</td>
-<td align="right">40.31907</td>
-</tr>
-<tr class="even">
-<td align="right">1999</td>
-<td align="right">2233</td>
 <td align="left">alcohol</td>
 <td align="right">39</td>
+<td align="right">2233</td>
 <td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="right">330</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
 </tr>
 <tr class="odd">
 <td align="right">1999</td>
-<td align="right">2233</td>
 <td align="left">other_illicit</td>
 <td align="right">574</td>
+<td align="right">2233</td>
 <td align="right">25.705329</td>
-<td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">23.913723</td>
+<td align="right">27.581410</td>
 </tr>
 <tr class="even">
 <td align="right">2000</td>
+<td align="left">alcohol</td>
+<td align="right">186</td>
 <td align="right">4822</td>
-<td align="left">marijuana</td>
-<td align="right">854</td>
-<td align="right">17.710494</td>
-<td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">3.857321</td>
+<td align="right">3.339821</td>
+<td align="right">4.449679</td>
 </tr>
 <tr class="odd">
 <td align="right">2000</td>
+<td align="left">marijuana</td>
+<td align="right">854</td>
 <td align="right">4822</td>
-<td align="left">alcohol</td>
-<td align="right">186</td>
-<td align="right">3.857321</td>
-<td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">17.710494</td>
+<td align="right">16.648693</td>
+<td align="right">18.824194</td>
 </tr>
 </tbody>
 </table>
-<pre class="r"><code>genly_billboard = billboard %&gt;%
-  pivot_longer(cols = c(&quot;marijuana&quot;, &quot;alcohol&quot;,&quot;other_illicit&quot;),
-               names_to = &quot;lyric_des&quot;,
-               values_to = &quot;lyric_yn&quot;,
-               names_prefix = &quot;lyr_&quot;) %&gt;%
-  pivot_longer(cols = starts_with(&quot;gen_&quot;),
-               names_to = &quot;gen_cate&quot;,
-               values_to = &quot;gen_yn&quot;,
-               names_prefix = &quot;gen_&quot;) %&gt;%
-  mutate(lyr_gen = as_factor(paste(lyric_des, gen_cate, sep = &quot;,&quot;)),
-         lyr_gen_yn = if_else(lyric_yn == 1 &amp; gen_yn == 1, 1, 0)) %&gt;%
-  group_by(lyr_gen, year, gen_cate) %&gt;%
-  summarize(n_lyr = sum(lyric_yn == 1),
-            total = n(),
-            n_gen = sum(gen_yn == 1),
-            n_lyr_gen = sum(lyr_gen_yn == 1)) %&gt;%
-  mutate(p_lyr_res = map2(.x = n_lyr, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrics = unlist(map(p_lyr_res, pluck(&quot;estimate&quot;))),
-         p_lyr_ci = map(p_lyr_res, pluck(&quot;conf.int&quot;)),
-         p_lyr_lci = min(unlist(p_lyr_ci)),
-         p_lyr_uci = max(unlist(p_lyr_ci)),
-         p_gen_res = map2(.x = n_gen, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_genre = unlist(map(p_gen_res, pluck(&quot;estimate&quot;))),
-         p_gen_ci = map(p_gen_res, pluck(&quot;conf.int&quot;)),
-         p_gen_lci = min(unlist(p_gen_ci)),
-         p_gen_uci = max(unlist(p_gen_ci)),
-         p_lyrgen_res = map2(.x = n_lyr_gen, .y = n_gen, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrgen = unlist(map(p_lyrgen_res, pluck(&quot;estimate&quot;))),
-         p_lyrgen_ci = map(p_lyrgen_res, pluck(&quot;conf.int&quot;)),
-         p_lyrgen_lci = min(unlist(p_lyrgen_ci)),
-         p_lyrgen_uci = max(unlist(p_lyrgen_ci)),
-         lyr_des = str_split(lyr_gen, &quot;,&quot;),
-         lyr_des = first(unlist(lyr_des)),
-         year = as.numeric(year),
-         gen_cate = str_replace(gen_cate, &quot;hip-hop&quot;,&quot;hip-hop/RnB&quot;)) %&gt;%
-  select(-p_lyr_res, -p_lyr_ci, -p_gen_res, -p_gen_ci, -p_lyrgen_res,-p_lyrgen_ci) %&gt;%
-  arrange(year) %&gt;%
-  relocate(year, lyr_des, gen_cate, lyr_gen, n_lyr, n_gen, n_lyr_gen)</code></pre>
-<pre><code>## `summarise()` has grouped output by &#39;lyr_gen&#39;, &#39;year&#39;. You can override using the `.groups` argument.</code></pre>
-<pre class="r"><code>write_csv(genly_billboard, file = &quot;./data/genly_billboard.csv&quot;, col_names = TRUE)
-
-knitr::kable(genly_billboard[1:5, ])</code></pre>
-<table style="width:100%;">
+<table>
 <colgroup>
-<col width="3%" />
-<col width="6%" />
+<col width="2%" />
 <col width="5%" />
-<col width="10%" />
+<col width="6%" />
+<col width="12%" />
 <col width="3%" />
 <col width="3%" />
-<col width="6%" />
+<col width="5%" />
 <col width="3%" />
-<col width="6%" />
-<col width="6%" />
-<col width="6%" />
-<col width="6%" />
-<col width="6%" />
-<col width="6%" />
-<col width="6%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
 <col width="7%" />
 <col width="7%" />
 </colgroup>
@@ -590,97 +419,97 @@ knitr::kable(genly_billboard[1:5, ])</code></pre>
 <tr class="odd">
 <td align="right">1999</td>
 <td align="left">marijuana</td>
-<td align="left">country</td>
-<td align="left">marijuana,country</td>
+<td align="left">gen_country</td>
+<td align="left">marijuana,gen_country</td>
 <td align="right">330</td>
 <td align="right">419</td>
 <td align="right">46</td>
 <td align="right">2233</td>
-<td align="right">0.1477833</td>
-<td align="right">0.1334546</td>
-<td align="right">0.1633401</td>
-<td align="right">0.1876399</td>
-<td align="right">0.1717718</td>
-<td align="right">0.2045958</td>
-<td align="right">0.1097852</td>
-<td align="right">0.0822805</td>
-<td align="right">0.1446594</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">18.76399</td>
+<td align="right">17.17718</td>
+<td align="right">20.45958</td>
+<td align="right">10.978520</td>
+<td align="right">8.2280457</td>
+<td align="right">14.465945</td>
 </tr>
 <tr class="even">
 <td align="right">1999</td>
 <td align="left">marijuana</td>
-<td align="left">hiphop</td>
-<td align="left">marijuana,hiphop</td>
+<td align="left">gen_hiphop</td>
+<td align="left">marijuana,gen_hiphop</td>
 <td align="right">330</td>
 <td align="right">550</td>
 <td align="right">60</td>
 <td align="right">2233</td>
-<td align="right">0.1477833</td>
-<td align="right">0.1334546</td>
-<td align="right">0.1633401</td>
-<td align="right">0.2463054</td>
-<td align="right">0.2286625</td>
-<td align="right">0.2648306</td>
-<td align="right">0.1090909</td>
-<td align="right">0.0848887</td>
-<td align="right">0.1389034</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">24.63054</td>
+<td align="right">22.86625</td>
+<td align="right">26.48306</td>
+<td align="right">10.909091</td>
+<td align="right">8.4888652</td>
+<td align="right">13.890341</td>
 </tr>
 <tr class="odd">
 <td align="right">1999</td>
 <td align="left">marijuana</td>
-<td align="left">rap</td>
-<td align="left">marijuana,rap</td>
+<td align="left">gen_rap</td>
+<td align="left">marijuana,gen_rap</td>
 <td align="right">330</td>
 <td align="right">403</td>
 <td align="right">141</td>
 <td align="right">2233</td>
-<td align="right">0.1477833</td>
-<td align="right">0.1334546</td>
-<td align="right">0.1633401</td>
-<td align="right">0.1804747</td>
-<td align="right">0.1648607</td>
-<td align="right">0.1972016</td>
-<td align="right">0.3498759</td>
-<td align="right">0.3037368</td>
-<td align="right">0.3989252</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">18.04747</td>
+<td align="right">16.48607</td>
+<td align="right">19.72016</td>
+<td align="right">34.987593</td>
+<td align="right">30.3736821</td>
+<td align="right">39.892517</td>
 </tr>
 <tr class="even">
 <td align="right">1999</td>
 <td align="left">marijuana</td>
-<td align="left">rock</td>
-<td align="left">marijuana,rock</td>
+<td align="left">gen_rock</td>
+<td align="left">marijuana,gen_rock</td>
 <td align="right">330</td>
 <td align="right">611</td>
 <td align="right">92</td>
 <td align="right">2233</td>
-<td align="right">0.1477833</td>
-<td align="right">0.1334546</td>
-<td align="right">0.1633401</td>
-<td align="right">0.2736229</td>
-<td align="right">0.2553136</td>
-<td align="right">0.2927192</td>
-<td align="right">0.1505728</td>
-<td align="right">0.1236529</td>
-<td align="right">0.1819844</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">27.36229</td>
+<td align="right">25.53136</td>
+<td align="right">29.27192</td>
+<td align="right">15.057283</td>
+<td align="right">12.3652868</td>
+<td align="right">18.198439</td>
 </tr>
 <tr class="odd">
 <td align="right">1999</td>
 <td align="left">alcohol</td>
-<td align="left">country</td>
-<td align="left">alcohol,country</td>
+<td align="left">gen_country</td>
+<td align="left">alcohol,gen_country</td>
 <td align="right">39</td>
 <td align="right">419</td>
 <td align="right">5</td>
 <td align="right">2233</td>
-<td align="right">0.0174653</td>
-<td align="right">0.0126128</td>
-<td align="right">0.0240427</td>
-<td align="right">0.1876399</td>
-<td align="right">0.1717718</td>
-<td align="right">0.2045958</td>
-<td align="right">0.0119332</td>
-<td align="right">0.0044014</td>
-<td align="right">0.0292651</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="right">18.76399</td>
+<td align="right">17.17718</td>
+<td align="right">20.45958</td>
+<td align="right">1.193317</td>
+<td align="right">0.4401442</td>
+<td align="right">2.926512</td>
 </tr>
 </tbody>
 </table>
@@ -695,34 +524,6 @@ knitr::kable(genly_billboard[1:5, ])</code></pre>
 <li>take the beginning year of each survey as the year as identifier</li>
 </ul></li>
 </ul>
-<pre class="r"><code>download.file(url = &quot;https://www.datafiles.samhsa.gov/sites/default/files/NSDUH_files/SAE/NSDUH_99_19_state_saes_final.sas7bdat&quot;, 
-                      destfile = &quot;./data/abuse.sas7bdat&quot;, mode = &quot;wb&quot;)
-abuse_df = read_sas(data_file = &quot;./data/abuse.sas7bdat&quot;)
-abuse = abuse_df %&gt;%
-  janitor::clean_names() %&gt;%
-  select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %&gt;%
-  filter(outcome %in% c(&quot;COCYR&quot;, &quot;IEMMON&quot;,&quot;MRJMON&quot;,&quot;SUMMON&quot;,&quot;INCIDENCE&quot;,&quot;BNGALC&quot;,&quot;RISKMJ&quot;) &amp; pyear != &quot;11&quot; &amp; agegrp %in% c(1,2,3)) %&gt;%
-  mutate(outcome = fct_recode(as_factor(outcome), &quot;Cocaine use in the last year&quot; = &quot;COCYR&quot;,
-                                                  &quot;Illicit drugs other than marijuana use in the last month&quot; = &quot;IEMMON&quot;,
-                                                  &quot;Marijuana use in the past month&quot; = &quot;MRJMON&quot;,
-                                                  &quot;Any illicit drug use in the last month&quot; = &quot;SUMMON&quot;,
-                                                  &quot;Annual incidence of first use of marijuana&quot; = &quot;INCIDENCE&quot;,
-                                                  &quot;Binge drinking in the last month&quot; = &quot;BNGALC&quot;,
-                                                  &quot;Risk perception on smoking marijuana once a month&quot; = &quot;RISKMJ&quot;),
-         pyearnm = substr(pyearnm, 1,9),
-         pyearnm = fct_reorder(as.factor(pyearnm), pyear),
-         agegrp = fct_recode(as_factor(agegrp), &quot;12-17 y/o&quot; = &quot;1&quot;,
-                                                &quot;18-25 y/o&quot; = &quot;2&quot;,
-                                                &quot;&gt;=26 y/o&quot; = &quot;3&quot;),
-         area = as.factor(area),
-         stname = as.factor(stname),
-         bsae = 100 * bsae,
-         low_sae = 100 * low_sae,
-         up_sae = 100 * up_sae,
-         year = as.numeric(substr(pyearnm,1,4))) %&gt;%
-  select(-pyear, -state)
-
-knitr::kable(abuse[1:5, ])</code></pre>
 <table>
 <colgroup>
 <col width="10%" />
@@ -809,20 +610,12 @@ knitr::kable(abuse[1:5, ])</code></pre>
 <ul>
 <li>Combine the songs data and the abuse data</li>
 </ul>
-<pre class="r"><code># individual song data
-
-# connnect the songs and the abuse data
-songs_abuse = left_join(songs, abuse, by = &quot;year&quot;)
-
-write_csv(songs_abuse, file = &quot;./data/songs_abuse.csv&quot;, col_names = TRUE)
-
-knitr::kable(songs_abuse[1:5, ])</code></pre>
 <table>
 <colgroup>
 <col width="3%" />
-<col width="4%" />
-<col width="8%" />
+<col width="5%" />
 <col width="6%" />
+<col width="4%" />
 <col width="6%" />
 <col width="6%" />
 <col width="6%" />
@@ -838,9 +631,9 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 <thead>
 <tr class="header">
 <th align="right">year</th>
-<th align="right">total</th>
-<th align="left">description</th>
+<th align="left">lyr_des</th>
 <th align="right">n_lyrics</th>
+<th align="right">total</th>
 <th align="right">p_lyrics</th>
 <th align="right">p_lci</th>
 <th align="right">p_uci</th>
@@ -857,12 +650,12 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 <tbody>
 <tr class="odd">
 <td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
 <td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.77833</td>
+<td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
 <td align="left">12-17 y/o</td>
 <td align="left">Binge drinking in the last month</td>
 <td align="left">0</td>
@@ -874,12 +667,12 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 </tr>
 <tr class="even">
 <td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
 <td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.77833</td>
+<td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
 <td align="left">18-25 y/o</td>
 <td align="left">Binge drinking in the last month</td>
 <td align="left">0</td>
@@ -891,12 +684,12 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 </tr>
 <tr class="odd">
 <td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
 <td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.77833</td>
+<td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
 <td align="left">&gt;=26 y/o</td>
 <td align="left">Binge drinking in the last month</td>
 <td align="left">0</td>
@@ -908,12 +701,12 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 </tr>
 <tr class="even">
 <td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
 <td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.77833</td>
+<td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
 <td align="left">12-17 y/o</td>
 <td align="left">Cocaine use in the last year</td>
 <td align="left">0</td>
@@ -925,12 +718,12 @@ knitr::kable(songs_abuse[1:5, ])</code></pre>
 </tr>
 <tr class="odd">
 <td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
 <td align="right">2233</td>
-<td align="left">marijuana</td>
-<td align="right">330</td>
-<td align="right">14.77833</td>
+<td align="right">1.746529</td>
 <td align="right">1.261275</td>
-<td align="right">40.31907</td>
+<td align="right">2.404267</td>
 <td align="left">18-25 y/o</td>
 <td align="left">Cocaine use in the last year</td>
 <td align="left">0</td>
