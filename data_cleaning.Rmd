@@ -25,8 +25,15 @@ In this page, the data cleaning process is described.
 
 # Cleaning process
 
-- First, load data
-
+- Lyrics
+  - Music data
+    - Download the Billboard data from the website using `Kaggler`. It's a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as 'billboard'.
+    - Keep the needed variables, and set all the strings lower case
+    - Keep the year data
+    - Because we are going to see the effect of the genre/lyrics instead of the real number of the songs, we did not delete duplicate songs and the data
+    - To make manual data check easier, keep the name of the songs
+    - This data set is larger than 100Mb, so it's not pushed to the repository.
+  
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -51,6 +58,14 @@ billboard = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv")
          genre = str_to_lower(genre)) %>%
   select(-week)
 
+knitr::kable(billboard[1:5,])
+```
+
+
+  - Music genre word list
+    - The music genre word list is generated from the genre variable from the billboard data. Since there are over 300 genres in the original data set, we manually reclassified these genres into 4 categories: hip-hop/R&B, country, rap, and rock. This classification is adapted from [Primak et al.](https://pubmed.ncbi.nlm.nih.gov/18250243/).
+    
+```{r genre list}
 word_bank_genre_raw = pull(billboard, genre) %>%
   unlist() %>%
   unique() %>%
@@ -58,6 +73,28 @@ word_bank_genre_raw = pull(billboard, genre) %>%
 
 write.csv(word_bank_genre_raw, file = "./data/word_bank_genre_raw_ling.csv")
 
+genre = read_csv(file = "./data/word_bank_genre_code_ling.csv",
+                         col_names = TRUE,
+                         na = "") %>%
+  select(-...1) %>%
+  group_by(genre_cate) %>%
+  summarise(subgenre = paste(value, collapse = "|")) %>%
+  drop_na(genre_cate)
+
+country = pull(subset(genre, genre_cate == "country"), subgenre)
+hiphop = pull(subset(genre, genre_cate == "hip-hop/r&;b"), subgenre)
+rap = pull(subset(genre, genre_cate == "rap"), subgenre)
+rock = pull(subset(genre, genre_cate == "rock"), subgenre)
+```
+
+  - Substance word list
+    - Download the word lists from the website using `rvest` and `httr`, the 2 lists are named as `word_bank_raw` and `word_bank_raw2`, respectively.
+    - Manually delete the too general terms (i.e., "black" refers to cocaine in some contexts)
+    - For each sublists, combine the strings together, separated by " | ".
+    - Combine the sublists describing the same (group of) substance together. Since the data for the substances other than alcohol and marijuana are limited, we combined the words describing the substances other than alcohol or marijuana together, taking [Primak et al.](https://pubmed.ncbi.nlm.nih.gov/18250243/) as a reference.
+  
+
+```{r substance list}
 word_bank_raw = read_html("https://www.addictioncenter.com/drugs/drug-street-names/") %>%
   html_table(header = T)
 
@@ -116,54 +153,6 @@ word_bank_marijuana = bind_rows(word_bank_marijuana, word_bank_marijuana2)
 write_csv(word_bank_other, file = "./data/other_illicit_bank_raw_ling.csv")
 write_csv(word_bank_marijuana, file = "./data/marijuana_bank_raw_ling.csv")
 
-
-# clean the abuse data
-download.file(url = "https://www.datafiles.samhsa.gov/sites/default/files/NSDUH_files/SAE/NSDUH_99_19_state_saes_final.sas7bdat", 
-                      destfile = "./data/abuse.sas7bdat", mode = "wb")
-abuse_df = read_sas(data_file = "./data/abuse.sas7bdat")
-abuse = abuse_df %>%
-  janitor::clean_names() %>%
-  select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %>%
-  filter(outcome %in% c("COCYR", "IEMMON","MRJMON","SUMMON","INCIDENCE","BNGALC","RISKMJ") & pyear != "11" & agegrp %in% c(1,2,3)) %>%
-  mutate(outcome = fct_recode(as_factor(outcome), "Cocaine use in the last year" = "COCYR",
-                                                  "Illicit drugs other than marijuana use in the last month" = "IEMMON",
-                                                  "Marijuana use in the past month" = "MRJMON",
-                                                  "Any illicit drug use in the last month" = "SUMMON",
-                                                  "Annual incidence of first use of marijuana" = "INCIDENCE",
-                                                  "Binge drinking in the last month" = "BNGALC",
-                                                  "Risk perception on smoking marijuana once a month" = "RISKMJ"),
-         pyearnm = substr(pyearnm, 1,9),
-         pyearnm = fct_reorder(as.factor(pyearnm), pyear),
-         agegrp = fct_recode(as_factor(agegrp), "12-18 y/o" = "1",
-                                                "18-25 y/o" = "2",
-                                                ">=26 y/o" = "3"),
-         area = as.factor(area),
-         stname = as.factor(stname),
-         bsae = 100 * bsae,
-         low_sae = 100 * low_sae,
-         up_sae = 100 * up_sae,
-         year = as.numeric(substr(pyearnm,1,4))) %>%
-  select(-pyear, -state)
-
-```
-
-Clean the manually classified music genre and alcohol word bank.
-```{r}
-
-genre = read_csv(file = "./data/word_bank_genre_code_ling.csv",
-                         col_names = TRUE,
-                         na = "") %>%
-  select(-...1) %>%
-  group_by(genre_cate) %>%
-  summarise(subgenre = paste(value, collapse = "|")) %>%
-  drop_na(genre_cate)
-
-country = pull(subset(genre, genre_cate == "country"), subgenre)
-hiphop = pull(subset(genre, genre_cate == "hip-hop/r&;b"), subgenre)
-rap = pull(subset(genre, genre_cate == "rap"), subgenre)
-rock = pull(subset(genre, genre_cate == "rock"), subgenre)
-
-
 alcohol_summary = read_csv(file = "./data/alcohol_bank_code_ling.csv",
                            col_names = TRUE,
                            na = "") %>%
@@ -172,9 +161,7 @@ alcohol_summary = read_csv(file = "./data/alcohol_bank_code_ling.csv",
   select(value)
 
 write_csv(alcohol_summary, file = "./data/word_bank_alcohol_summary_ling.csv")
-```
-Load word banks
-```{r}
+
 words_alcohol = read_lines("./data/words/alcohol.csv")
 regex_alcohol = paste(words_alcohol,collapse = " | ")
 
@@ -183,11 +170,49 @@ regex_marijuana = paste(words_marijuana,collapse = " | ")
 
 words_other = read_lines("./data/words/other_illicit.csv")
 regex_other = paste(words_other,collapse = " | ")
+
 ```
-Categorization
-```{r}
-# individual song data
-billboard_1 = billboard %>%
+  
+  - Summarize the song information by year
+    - substance description data ('songs' data)
+      - this data is cleaned separately to be combined with the substance abuse data
+      - summarize the frequency of songs mentioning substances in each year
+      - calculate the 95% confidence interval of the frequencies
+      
+    - substance description and genre data ('genly_billboard' data)
+      - summarize the frequency of song mentioning substances and genre in each year
+      - calculate the 95% confidence interval of the frequencies
+    
+```{r billboard summary}
+billboard_data = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv") %>%
+  select(id = "...1",Week,Lyrics) %>%
+  janitor::clean_names() %>%
+  mutate(year = substr(week,1,4)) %>%
+  relocate(id,year) %>%
+   mutate(
+    marijuana = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
+    alcohol = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
+    other_illicit = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)))
+
+songs = group_by(billboard_data, year) %>%
+  summarise(
+    total = n(),
+    n_marijuana = sum(marijuana),
+    n_alcohol = sum(alcohol),
+    n_other_illicit = sum(other_illicit)) %>%
+    select(-...1) %>%
+    pivot_longer(cols = starts_with("n_"), names_to = "description", values_to = "n_lyrics", names_prefix = "n_") %>%
+    group_by(year, description) %>%
+    mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
+         p_ci = map(p_result, pluck("conf.int")),
+         p_lci = 100*(min(unlist(p_ci))),
+         p_uci = 100*(max(unlist(p_ci)))) %>%
+    select(-p_result, -p_ci)
+
+knitr::kable(songs[1:5, ])
+
+genly_billboard = billboard %>%
   select(name, year, genre,lyrics) %>%
   mutate(lyr_alcohol = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
          lyr_marijuana = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
@@ -196,30 +221,7 @@ billboard_1 = billboard %>%
          gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
          gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
          gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))) %>%
-  select(-genre, -lyrics) 
-
-write_csv(billboard_1, file = "./data/billboard_classification.csv", col_names = TRUE)
-
-# music lyrics, using summary data
-songs = read_csv("./data/songs_per_year.csv",
-                     col_names = TRUE) %>%
-  select(-...1) %>%
-  pivot_longer(cols = starts_with("n_"), names_to = "description", values_to = "n_lyrics", names_prefix = "n_") %>%
-  group_by(year, description) %>%
-  mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
-         p_ci = map(p_result, pluck("conf.int")),
-         p_lci = 100*(min(unlist(p_ci))),
-         p_uci = 100*(max(unlist(p_ci)))) %>%
-  select(-p_result, -p_ci)
-
-# connnect the songs and the abuse data
-songs_abuse = left_join(songs, abuse, by = "year")
-
-write_csv(songs_abuse, file = "./data/songs_abuse.csv", col_names = TRUE)
-
-# lyrics * genre, summary data
-genly_billboard = billboard_1 %>%
+  select(-genre, -lyrics) %>%
   pivot_longer(cols = starts_with("lyr_"),
                names_to = "lyric_des",
                values_to = "lyric_yn",
@@ -258,6 +260,62 @@ genly_billboard = billboard_1 %>%
   relocate(year, lyr_des, gen_cate, lyr_gen, n_lyr, n_gen, n_lyr_gen)
 
 write_csv(genly_billboard, file = "./data/genly_billboard.csv", col_names = TRUE)
+
+knitr::kable(genly_billboard[1:5, ])
 ```
+    
+- NSDUH data
+  - download the data and load the SAS file
+  - clean the names
+  - keep the variables needed
+  - restrict the outcomes of interest, restrict the age groups (12-18 years old, 18-25 years old, 26 years and older)
+  - clean the values, and change the proportions into percentage
+  - take the beginning year of each survey as the year as identifier
+
+```{r}
+download.file(url = "https://www.datafiles.samhsa.gov/sites/default/files/NSDUH_files/SAE/NSDUH_99_19_state_saes_final.sas7bdat", 
+                      destfile = "./data/abuse.sas7bdat", mode = "wb")
+abuse_df = read_sas(data_file = "./data/abuse.sas7bdat")
+abuse = abuse_df %>%
+  janitor::clean_names() %>%
+  select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %>%
+  filter(outcome %in% c("COCYR", "IEMMON","MRJMON","SUMMON","INCIDENCE","BNGALC","RISKMJ") & pyear != "11" & agegrp %in% c(1,2,3)) %>%
+  mutate(outcome = fct_recode(as_factor(outcome), "Cocaine use in the last year" = "COCYR",
+                                                  "Illicit drugs other than marijuana use in the last month" = "IEMMON",
+                                                  "Marijuana use in the past month" = "MRJMON",
+                                                  "Any illicit drug use in the last month" = "SUMMON",
+                                                  "Annual incidence of first use of marijuana" = "INCIDENCE",
+                                                  "Binge drinking in the last month" = "BNGALC",
+                                                  "Risk perception on smoking marijuana once a month" = "RISKMJ"),
+         pyearnm = substr(pyearnm, 1,9),
+         pyearnm = fct_reorder(as.factor(pyearnm), pyear),
+         agegrp = fct_recode(as_factor(agegrp), "12-18 y/o" = "1",
+                                                "18-25 y/o" = "2",
+                                                ">=26 y/o" = "3"),
+         area = as.factor(area),
+         stname = as.factor(stname),
+         bsae = 100 * bsae,
+         low_sae = 100 * low_sae,
+         up_sae = 100 * up_sae,
+         year = as.numeric(substr(pyearnm,1,4))) %>%
+  select(-pyear, -state)
+
+knitr::kable(abuse[1:5, ])
+```
+
+- Combine the songs data and the abuse data
+```{r}
+# individual song data
+
+# connnect the songs and the abuse data
+songs_abuse = left_join(songs, abuse, by = "year")
+
+write_csv(songs_abuse, file = "./data/songs_abuse.csv", col_names = TRUE)
+
+knitr::kable(songs_abuse[1:5, ])
+```
+
+- Now the whole data cleaning process is completed
+  - 
 
 
