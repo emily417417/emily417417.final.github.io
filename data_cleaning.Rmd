@@ -48,17 +48,18 @@ kgl_auth(creds_file = 'kaggle.json')
 response <- kgl_datasets_download_all(owner_dataset = "danield2255/data-on-songs-from-billboard-19992019")
 
 download.file(response[["url"]], "data/temp.zip", mode = "wb")
-unzip_result <- unzip("data/temp.zip", exdir = "./data", overwrite = TRUE)
+#unzip_result <- unzip("data/temp.zip", exdir = "./data", overwrite = TRUE)
 
 billboard = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv") %>%
   janitor::clean_names() %>%
   select(week,name,genre,lyrics) %>%
-  mutate(year = format(week, "%Y"),
+  mutate(year = substr(week,1,4),
          lyrics = str_to_lower(str_replace(lyrics, "\n"," ")),
          genre = str_to_lower(genre)) %>%
+  relocate(year, name, genre) %>%
   select(-week)
 
-knitr::kable(billboard[1:5,])
+knitr::kable(billboard[1:5, ])
 ```
 
 
@@ -73,7 +74,7 @@ word_bank_genre_raw = pull(billboard, genre) %>%
 
 write.csv(word_bank_genre_raw, file = "./data/word_bank_genre_raw_ling.csv")
 
-genre = read_csv(file = "./data/word_bank_genre_code_ling.csv",
+genre = read_csv(file = "./data/genre.csv",
                          col_names = TRUE,
                          na = "") %>%
   select(-...1) %>%
@@ -153,22 +154,13 @@ word_bank_marijuana = bind_rows(word_bank_marijuana, word_bank_marijuana2)
 write_csv(word_bank_other, file = "./data/other_illicit_bank_raw_ling.csv")
 write_csv(word_bank_marijuana, file = "./data/marijuana_bank_raw_ling.csv")
 
-alcohol_summary = read_csv(file = "./data/alcohol_bank_code_ling.csv",
-                           col_names = TRUE,
-                           na = "") %>%
-  select(-...1) %>%
-  filter(is.na(delete)) %>%
-  select(value)
-
-write_csv(alcohol_summary, file = "./data/word_bank_alcohol_summary_ling.csv")
-
-words_alcohol = read_lines("./data/words/alcohol.csv")
+words_alcohol = read_lines("./data/alcohol.csv")
 regex_alcohol = paste(words_alcohol,collapse = " | ")
 
-words_marijuana = read_lines("./data/words/marijuana.csv")
+words_marijuana = read_lines("./data/marijuana.csv")
 regex_marijuana = paste(words_marijuana,collapse = " | ")
 
-words_other = read_lines("./data/words/other_illicit.csv")
+words_other = read_lines("./data/other_illicit.csv")
 regex_other = paste(words_other,collapse = " | ")
 
 ```
@@ -184,45 +176,40 @@ regex_other = paste(words_other,collapse = " | ")
       - calculate the 95% confidence interval of the frequencies
     
 ```{r billboard summary}
-billboard_data = read_csv("./data/BillboardFromLast20/billboardHot100_1999-2019.csv") %>%
-  select(id = "...1",Week,Lyrics) %>%
-  janitor::clean_names() %>%
-  mutate(year = substr(week,1,4)) %>%
-  relocate(id,year) %>%
+billboard = billboard %>%
    mutate(
     marijuana = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
     alcohol = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
-    other_illicit = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)))
+    other_illicit = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)),
+    gen_country = as.numeric(grepl(country, genre, ignore.case = TRUE)),
+    gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
+    gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
+    gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))
+    ) %>%
+    select(-lyrics, -genre)
 
-songs = group_by(billboard_data, year) %>%
-  summarise(
-    total = n(),
-    n_marijuana = sum(marijuana),
-    n_alcohol = sum(alcohol),
-    n_other_illicit = sum(other_illicit)) %>%
-    select(-...1) %>%
+write_csv(billboard, file = "./data/billboard_cleaned.csv", col_names = TRUE)
+
+songs = billboard %>%
+    group_by(year) %>%
+    summarise(
+      total = n(),
+      n_marijuana = sum(marijuana),
+      n_alcohol = sum(alcohol),
+      n_other_illicit = sum(other_illicit)) %>%
     pivot_longer(cols = starts_with("n_"), names_to = "description", values_to = "n_lyrics", names_prefix = "n_") %>%
-    group_by(year, description) %>%
     mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
-         p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
-         p_ci = map(p_result, pluck("conf.int")),
-         p_lci = 100*(min(unlist(p_ci))),
-         p_uci = 100*(max(unlist(p_ci)))) %>%
+           p_lyrics = 100*(unlist(map(p_result, pluck("estimate")))),
+           p_ci = map(p_result, pluck("conf.int")),
+           p_lci = 100*(min(unlist(p_ci))),
+           p_uci = 100*(max(unlist(p_ci))),
+           year = as.numeric(year)) %>%
     select(-p_result, -p_ci)
 
 knitr::kable(songs[1:5, ])
 
 genly_billboard = billboard %>%
-  select(name, year, genre,lyrics) %>%
-  mutate(lyr_alcohol = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
-         lyr_marijuana = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
-         lyr_other = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)),
-         gen_country = as.numeric(grepl(country, genre, ignore.case = TRUE)),
-         gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
-         gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
-         gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))) %>%
-  select(-genre, -lyrics) %>%
-  pivot_longer(cols = starts_with("lyr_"),
+  pivot_longer(cols = c("marijuana", "alcohol","other_illicit"),
                names_to = "lyric_des",
                values_to = "lyric_yn",
                names_prefix = "lyr_") %>%
@@ -254,7 +241,8 @@ genly_billboard = billboard %>%
          p_lyrgen_uci = max(unlist(p_lyrgen_ci)),
          lyr_des = str_split(lyr_gen, ","),
          lyr_des = first(unlist(lyr_des)),
-         year = as.numeric(year)) %>%
+         year = as.numeric(year),
+         gen_cate = str_replace(gen_cate, "hip-hop","hip-hop/RnB")) %>%
   select(-p_lyr_res, -p_lyr_ci, -p_gen_res, -p_gen_ci, -p_lyrgen_res,-p_lyrgen_ci) %>%
   arrange(year) %>%
   relocate(year, lyr_des, gen_cate, lyr_gen, n_lyr, n_gen, n_lyr_gen)
@@ -289,7 +277,7 @@ abuse = abuse_df %>%
                                                   "Risk perception on smoking marijuana once a month" = "RISKMJ"),
          pyearnm = substr(pyearnm, 1,9),
          pyearnm = fct_reorder(as.factor(pyearnm), pyear),
-         agegrp = fct_recode(as_factor(agegrp), "12-18 y/o" = "1",
+         agegrp = fct_recode(as_factor(agegrp), "12-17 y/o" = "1",
                                                 "18-25 y/o" = "2",
                                                 ">=26 y/o" = "3"),
          area = as.factor(area),
@@ -316,6 +304,7 @@ knitr::kable(songs_abuse[1:5, ])
 ```
 
 - Now the whole data cleaning process is completed
-  - 
+  - The songs_abuse data include the substance description frequency and substance abuse information in each year, from 1999 to 2019
+  - The genly_billboard data include the genre frequency in each year and the substance description frequency in each genre each year, from 1999 to 2019
 
 
