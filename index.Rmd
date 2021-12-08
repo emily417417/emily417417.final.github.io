@@ -1,5 +1,5 @@
 ---
-title: "The relationship between illicit drug use and billboard music chart"
+title: "Does illicit drug use motivated by billboard music?"
 output: 
   html_document:
     code_folding: hide
