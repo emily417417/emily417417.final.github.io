@@ -35,7 +35,7 @@ In this page, the data cleaning process is described.
     - This data set is larger than 100Mb, so it's not pushed to the repository.
   
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE )
+knitr::opts_chunk$set(message = FALSE, warning = FALSE )
 
 library(tidyverse)
 library(rvest)
