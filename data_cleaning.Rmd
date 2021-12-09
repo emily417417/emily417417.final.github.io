@@ -268,14 +268,16 @@ abuse_df = read_sas(data_file = "./data/abuse.sas7bdat")
 abuse = abuse_df %>%
   janitor::clean_names() %>%
   select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %>%
-  filter(outcome %in% c("COCYR", "IEMMON","MRJMON","SUMMON","INCIDENCE","BNGALC","RISKMJ") & pyear != "11" & agegrp %in% c(1,2,3)) %>%
+  filter(outcome %in% c("COCYR", "IEMMON","MRJMON","SUMMON","INCIDENCE","BNGALC","RISKMJ","BNGDRK") & pyear != "11" & agegrp %in% c(1,2,3)) %>%
   mutate(outcome = fct_recode(as_factor(outcome), "Cocaine use in the last year" = "COCYR",
                                                   "Illicit drugs other than marijuana use in the last month" = "IEMMON",
                                                   "Marijuana use in the past month" = "MRJMON",
                                                   "Any illicit drug use in the last month" = "SUMMON",
                                                   "Annual incidence of first use of marijuana" = "INCIDENCE",
                                                   "Binge drinking in the last month" = "BNGALC",
+                                                  "Binge drinking in the last month" = "BNGDRK",
                                                   "Risk perception on smoking marijuana once a month" = "RISKMJ"),
+         year = as.numeric(substr(pyearnm,1,4)),
          pyearnm = substr(pyearnm, 1,9),
          pyearnm = fct_reorder(as.factor(pyearnm), pyear),
          agegrp = fct_recode(as_factor(agegrp), "12-17 y/o" = "1",
@@ -286,10 +288,13 @@ abuse = abuse_df %>%
          bsae = 100 * bsae,
          low_sae = 100 * low_sae,
          up_sae = 100 * up_sae,
-         year = as.numeric(substr(pyearnm,1,4))) %>%
-  select(-pyear, -state)
+         ) %>%
+  select(-pyear, -state) %>%
+  drop_na(bsae)
 
 knitr::kable(abuse[1:5, ])
+
+
 ```
 
 - Combine the songs data and the abuse data
