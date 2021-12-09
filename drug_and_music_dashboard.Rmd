@@ -41,7 +41,7 @@ songs_abuse_plot=
   ggplot(aes(x = p_lyrics, y = bsae, color = agegrp)) +
     geom_point() +
     geom_smooth(aes(group = agegrp), se = F) +
-   labs(
+   labs(x="% of marijuana lyric",
          y = "Marijuana use in the past(%)",
          color = "agegroup")
 

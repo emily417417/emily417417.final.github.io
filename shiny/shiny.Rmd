@@ -81,9 +81,10 @@ renderPlot({
               mapping = aes(x = long, y = lat, group = group, fill = bsae)) +
     coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
     geom_polygon(color = "gray50", size = 0.1) +
-    scale_fill_continuous(type = "viridis") +
+    scale_fill_continuous(type = "viridis",name = "percentage") +
     theme(
       plot.title = element_text(hjust = 0.5),
+      title = element_text(size=14),
       axis.line=element_blank(),
       axis.text=element_blank(),
       axis.ticks=element_blank(),
@@ -92,8 +93,7 @@ renderPlot({
       panel.border=element_blank(),
       panel.grid=element_blank()) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by state"),
-      colour="bsae")
+      title = paste("Abuse of",input$drug_choice,"by state in",input$year))
 
 p
 })
@@ -114,13 +114,17 @@ renderPlot({
   
   abuse_by_age_data %>% ggplot(aes(x=agegrp,y=bsae,fill=agegrp)) + 
     geom_boxplot() + 
-    scale_fill_viridis(discrete = TRUE) +
+    scale_fill_viridis(discrete = TRUE,name = "age group") +
     theme_bw() +
     theme(
-      plot.title = element_text(hjust = 0.5)) + 
+      plot.title = element_text(hjust = 0.5),
+      axis.text=element_text(size=12),
+      axis.title=element_text(size=14),
+      title =element_text(size=14)) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by age group"))
-
+      title = paste("Abuse of",input$drug_choice,"by age group in",input$year),
+      x = "age group",
+      y = "percentage")
 })
 ```
 
@@ -136,12 +140,17 @@ renderPlot({
     #      colors = "Set2") 
     abuse_by_year_data %>% 
       ggplot(aes(x=year,y=bsae,group=agegrp,color=agegrp)) + 
-      geom_point() + geom_line() + scale_color_viridis(discrete=TRUE) + 
+      geom_point() + geom_line() + 
+      scale_color_viridis(discrete=TRUE,name = "age group") + 
       theme_bw() +
       theme(
-        plot.title = element_text(hjust = 0.5)) + 
+        plot.title = element_text(hjust = 0.5),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        title = element_text(size=14))  + 
       labs(
-        title = paste("Abuse of",input$drug_choice,"by year within",input$state))
+        title = paste("Abuse of",input$drug_choice,"by year within",input$state),
+        y = "percentage")
 })
 
 ```
