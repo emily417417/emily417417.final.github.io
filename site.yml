@@ -10,9 +10,7 @@ navbar:
         - text: "Part-2"
           href: drugdashboard.html
     - text: "Regression Analyses"
-      menu:
-        - text: "XXX ananlysis"
-          href: regression_mpv.html
+      href: regression_mpv.html
     - text: "Interactive Maps"
       href: https://mingkuanxu.shinyapps.io/p8105_final_project/
   right:
