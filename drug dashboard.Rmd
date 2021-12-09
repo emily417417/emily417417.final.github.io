@@ -8,6 +8,7 @@ output:
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
+library(plotly)
 ```
 
 Column {data-width=650}
@@ -32,5 +33,10 @@ Column {data-width=350}
 
 ```{r}
 
+```
+
+
+```{r}
+rmarkdown::render("dashboard_template.Rmd", output_format = "flexdashboard::flex_dashboard")
 ```
 
