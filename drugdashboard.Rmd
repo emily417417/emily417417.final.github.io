@@ -1,0 +1,87 @@
+---
+title: "drug dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(plotly)
+library(tidyverse)
+```
+
+
+```{r}
+songs_abuse=read_csv("./data/songs_abuse.csv")
+```
+
+Column {data-width=650}
+-----------------------------------------------------------------------
+
+### Chart A
+
+```{r}
+songs_abuse_plot=
+  songs_abuse%>%
+  filter(outcome=="Illicit drugs other than marijuana use in the last month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Mean percentage of illicit durg other than marijuana by age group",
+         y = "Mean (%) in the past",
+         color = "agegroup")
+
+ggplotly(songs_abuse_plot)
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Chart B
+
+```{r}
+marijuana_plot=
+songs_abuse%>%
+  filter(outcome=="Marijuana use in the past month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+    labs(title = "Mean perentage of Marijuana use by age group",
+         y = "Mean of Marijuana use (%) ",
+         color = "agegroup")
+
+ggplotly(marijuana_plot)
+```
+
+### Chart C
+
+```{r}
+otherthan_marijuana_plot=
+  songs_abuse%>%
+  filter(outcome=="Illicit drugs other than marijuana use in the last month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Mean percentage of illicit durg other than marijuana by age group",
+         y = "Mean (%) in the past",
+         color = "agegroup")
+
+ggplotly(otherthan_marijuana_plot)
+```
+
+
+```{r}
+rmarkdown::render("drugdashboard.rmd", output_format = "flexdashboard::flex_dashboard")
+```
+
