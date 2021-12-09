@@ -81,7 +81,5 @@ ggplotly(otherthan_marijuana_plot)
 ```
 
 
-```{r}
-rmarkdown::render("drugdashboard.rmd", output_format = "flexdashboard::flex_dashboard")
-```
+
 
