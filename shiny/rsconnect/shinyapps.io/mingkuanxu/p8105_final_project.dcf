@@ -5,7 +5,7 @@ account: mingkuanxu
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 5300423
-bundleId: 5351656
+bundleId: 5351791
 url: https://mingkuanxu.shinyapps.io/p8105_final_project/
-when: 1639075936.0933
-lastSyncTime: 1639075936.09331
+when: 1639078496.35882
+lastSyncTime: 1639078496.35883
