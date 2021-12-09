@@ -41,7 +41,7 @@ genly_billboard=read_csv("data/genly_billboard.csv")
 
 ## Motivation
 
-This project is overall motivated by the current major public health issue in United States: the Illicit drug use. Previous studies showed a relationship between illicit drug use and pop music [[1](https://pubmed.ncbi.nlm.nih.gov/30599351/),[2](https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433)], indicating that pop music may have a potential encouraging effect on illicit drug use [[3](https://pubmed.ncbi.nlm.nih.gov/18250243/)]. However, these studies are either cross-sectional, or need to be reproduce using more recent data. 
+This project is overall motivated by the current major public health issue in United States: the Illicit drug use. Previous studies showed a relationship between illicit drug use and pop music [[1](https://pubmed.ncbi.nlm.nih.gov/30599351/),[2](https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433)], indicating that pop music may have a potential encouraging effect on illicit drug use [[3](https://pubmed.ncbi.nlm.nih.gov/18250243/)]. However, these studies are either cross-sectional, or need to be reproduce using more recent data.
 In this study, we will describe the trend of music genre, frequency of illicit drug in the popular music, and the relationship between popular music and illicit drug use during the period of 1999-2019.
 
 &nbsp;
@@ -58,28 +58,64 @@ The questions for this project are based on the 3 datasets we used which are exp
 
 ## Data
 
+### *Data Source*
 <li>Popular music data: from [Data on Songs from Billboard 1999-2019](https://www.kaggle.com/danield2255/data-on-songs-from-billboard-19992019).</li>
 <li>Illicit drug usage data: from [National Survey on Drug Use and Health (NSDUH) 1999-2019](https://www.datafiles.samhsa.gov/dataset/national-survey-drug-use-and-health-2019-nsduh-2019-ds0001)</li>
-<li>Substance word list: from [Addiction Center.com](https://www.addictioncenter.com/). They are [Drug Street Names](https://www.addictioncenter.com/drugs/drug-street-names/) and [Drug And Alcohol Slang Terms](https://www.addictioncenter.com/drugs/drug-alcohol-slang/).</li>
-### *Variables of Interest*
-#### **Popular Music Dataset**
-* `age`
-* `gender`
-* `race`
+<li>Substance word list: from [Addiction Center](https://www.addictioncenter.com/). They are [Drug Street Names](https://www.addictioncenter.com/drugs/drug-street-names/) and [Drug And Alcohol Slang Terms](https://www.addictioncenter.com/drugs/drug-alcohol-slang/).</li>
+&nbsp;
 
 
-#### ** Illicit Drug Usage Dataset**
-* `age`
-* `gender`
-* `race`
-* `police_dept`: the police department responsible for the individual's death
+### *Variable of Interest*
+#####  -*Popular Music Dataset*
+* `year`:year of published
+* `lyric`:lyric of the song
+* `genre`:music genre(country,rock,hip hop etc.)
+
+#####  -*Illicit Drug Usage Dataset*
 * `year`
-* `city`
-* `state`
-* `criminal_charges`: whether the police officers involved received criminal charges
-* `symptoms_of_mental_illness`: whether the individual killed had symptoms of mental illness
+* `agegroup`:'1'=age 12-17;'2'=age 18-25;'3'=age >25
+* `outcome`:</li>
+    -Cocaine use in the last year
+   
+    -Illicit drugs other than marijuana use in the last month
+   
+    -Marijuana use in the past month
+   
+    -Any illicit drug use in the last month
+   
+    -Annual incidence of first use of marijuana
+   
+    -Binge drinking in the last month
+   
+    -Risk perception on smoking marijuana once a month
+* `bsae`: the percentage of outcome behavior in specific age group and area
+* `area`: '0'=National Level;'1'=State level
 
 &nbsp;
+
+### *Data Cleaning and Wrangling*
+* **Popular Music Dataset:** Download the Billboard data from the website using `Kaggler`. It's a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as 'billboard'.
+    - Keep the needed variables, and set all the strings lower case
+    - Keep the year data
+    - Because we are going to see the effect of the genre/lyrics instead of the real number of the songs, we did not delete duplicate songs and the data
+    - To make manual data check easier, keep the name of the songs
+* **Music genre word list:** The music genre word list is generated from the genre variable from the billboard data. Since there are over 300 genres in the original data set, we manually reclassified these genres into 4 categories: hip-hop/R&B, country, rap, and rock. This classification is adapted from [Primak et al.](https://pubmed.ncbi.nlm.nih.gov/18250243/).
+* **genly_billboard data:** Include the genre frequency in each year and the substance description frequency in each genre each year, from 1999 to 2019
+* **Substance word list:**
+    - Download the word lists from the website using `rvest` and `httr`, the 2 lists are named as `word_bank_raw` and `word_bank_raw2`, respectively.
+    - Manually delete the too general terms (i.e., "black" refers to cocaine in some contexts)
+    - For each sublists, combine the strings together, separated by " | ".
+    - Combine the sublists describing the same (group of) substance together. Since the data for the substances other than alcohol and marijuana are limited, we combined the words describing the substances other than alcohol or marijuana together, taking [Primak et al.](https://pubmed.ncbi.nlm.nih.gov/18250243/) as a reference.
+* **Illicit Drug Usage Dataset:**
+    - download the data and load the SAS file
+    - clean the names
+    - keep the variables needed
+    - restrict the outcomes of interest, restrict the age groups (12-18 years old, 18-25 years old, 26 years and older)
+    - clean the values, and change the proportions into percentage
+    - take the beginning year of each survey as the year as identifier
+* **songs_abuse dataset:** Combined from Illicit Drug Usage Dataset and Popular Music Dataset
+     - Include the substance description frequency and substance abuse information in each year, from 1999 to 2019
+
 
 
 ## Exploratory analysis
@@ -174,4 +210,22 @@ genly %>%
     add_ribbons( ymin = ~ p_lyr_lci,
                  ymax = ~ p_lyr_uci,
                  alpha = 0.3)
+```
+
+<br>With the increasing proportion of marijuana description in popular songs, more and more people aged 18-25 years used marijuana.
+
+```{r, message=FALSE, warning=FALSE}
+songs_abuse=read_csv("./data/songs_abuse.csv")
+```
+
+```{r, message=FALSE, warning=FALSE}
+songs_abuse%>%
+  filter(stname=="National", outcome=="Marijuana use in the past month")%>%
+  group_by(year)%>%
+  ggplot(aes(x = p_lyrics, y = bsae, color = agegrp)) +
+    geom_point() +
+    geom_smooth(aes(group = agegrp), se = F) +
+   labs(x="% of marijuana lyric",
+         y = "Marijuana use in the past(%)",
+         color = "agegroup")
 ```
