@@ -21,7 +21,7 @@ library(mapproj)
 ```{r import_data}
 abuse_state_data = read_csv("./songs_abuse.csv") %>%
   filter(area==2) %>%
-  select(year,description,bsae,stname,agegrp,outcome) %>%
+  select(year,description=lyr_des,bsae,stname,agegrp,outcome) %>%
   mutate(stname = tolower(stname)) %>%
   filter((description=="marijuana" & 
           outcome == "Marijuana use in the past month")|
@@ -30,7 +30,7 @@ abuse_state_data = read_csv("./songs_abuse.csv") %>%
          (description=="other_illicit" & 
             outcome == "Any illicit drug use in the last month")) %>%
   mutate(agegrp = ifelse(agegrp == ">=26 y/o","26+ y/o",agegrp)) %>%
-  mutate(description = ifelse(description == "other_illicit","other illicit drugs",description))
+  mutate(description = ifelse(description == "other_illicit","other illicit drugs",description)) 
 
 ```
 
@@ -46,12 +46,12 @@ radioButtons("drug_choice", label = h4("Choose drug type"),
     selected = "marijuana")
 
 sliderInput("year", label = h4("Choose year"), min = 1999, 
-        max = 2019, value = c(1999),dragRange = FALSE)
+        max = 2018, value = c(1999),dragRange = FALSE)
 
 agegrp_choice = abuse_state_data %>% distinct(agegrp) %>% pull
 radioButtons("agegrp_choice", label = h4("Choose age group"),
     choices = agegrp_choice, 
-    selected = "12-18 y/o")
+    selected = "12-17 y/o")
 
 states = abuse_state_data %>% 
   mutate(state = str_to_title(stname)) %>%
@@ -81,9 +81,10 @@ renderPlot({
               mapping = aes(x = long, y = lat, group = group, fill = bsae)) +
     coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
     geom_polygon(color = "gray50", size = 0.1) +
-    scale_fill_continuous(type = "viridis") +
+    scale_fill_continuous(type = "viridis",name = "percentage") +
     theme(
       plot.title = element_text(hjust = 0.5),
+      title = element_text(size=14),
       axis.line=element_blank(),
       axis.text=element_blank(),
       axis.ticks=element_blank(),
@@ -92,8 +93,7 @@ renderPlot({
       panel.border=element_blank(),
       panel.grid=element_blank()) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by state"),
-      colour="bsae")
+      title = paste("Abuse of",input$drug_choice,"by state in",input$year))
 
 p
 })
@@ -114,13 +114,17 @@ renderPlot({
   
   abuse_by_age_data %>% ggplot(aes(x=agegrp,y=bsae,fill=agegrp)) + 
     geom_boxplot() + 
-    scale_fill_viridis(discrete = TRUE) +
+    scale_fill_viridis(discrete = TRUE,name = "age group") +
     theme_bw() +
     theme(
-      plot.title = element_text(hjust = 0.5)) + 
+      plot.title = element_text(hjust = 0.5),
+      axis.text=element_text(size=12),
+      axis.title=element_text(size=14),
+      title =element_text(size=14)) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by age group"))
-
+      title = paste("Abuse of",input$drug_choice,"by age group in",input$year),
+      x = "age group",
+      y = "percentage")
 })
 ```
 
@@ -136,12 +140,17 @@ renderPlot({
     #      colors = "Set2") 
     abuse_by_year_data %>% 
       ggplot(aes(x=year,y=bsae,group=agegrp,color=agegrp)) + 
-      geom_point() + geom_line() + scale_color_viridis(discrete=TRUE) + 
+      geom_point() + geom_line() + 
+      scale_color_viridis(discrete=TRUE,name = "age group") + 
       theme_bw() +
       theme(
-        plot.title = element_text(hjust = 0.5)) + 
+        plot.title = element_text(hjust = 0.5),
+        axis.text=element_text(size=12),
+        axis.title=element_text(size=14),
+        title = element_text(size=14))  + 
       labs(
-        title = paste("Abuse of",input$drug_choice,"by year within",input$state))
+        title = paste("Abuse of",input$drug_choice,"by year within",input$state),
+        y = "percentage")
 })
 
 ```
