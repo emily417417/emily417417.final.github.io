@@ -1,9 +1,13 @@
 ---
 title: "Project Report"
-output: html_document
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
 ---
 
-```{r setup, include=FALSE}
+```{r setup, message=FALSE, include=FALSE}
 library(tidyverse)
 library(ggplot2)
 library(readr)
@@ -78,4 +82,96 @@ The questions for this project are based on the 3 datasets we used which are exp
 &nbsp;
 
 
+## Exploratory analysis
+### Drug Use Data
+<br>The prevalence rates of Marijuana use is increasing 
+from 1999-2018 at national level in both 18-25 age group and >=26 age group. The 18-25 age group is the highest Marijuana usage group.
 
+```{r marijuana_plot,message=FALSE,warning=FALSE}
+songs_abuse%>%
+  filter(outcome=="Marijuana use in the past month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+    labs(title = "Mean prevalence rates (%) of Marijuana use by age group",
+         y = "Mean prevalence rates of Marijuana use (%) ",
+         color = "agegroup")
+```
+
+<br>The prevalence rates of illicit drug other than Marijuana is decreasing from 2003-2013 at national level after a peak in 2003-2004 in both 18-25 age group and 12-17 age group.
+
+```{r otherthan_marijuana,message=FALSE, warning=FALSE}
+  songs_abuse%>%
+  filter(outcome=="Illicit drugs other than marijuana use in the last month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Mean prevalence rates (%) of illicit durg other than marijuana by age group",
+         y = "Mean prevalence rates (%) of illicit durg other than marijuana",
+         color = "agegroup")
+```
+
+&nbsp;
+
+```{r message=FALSE,warning=FALSE}
+genly = read_csv("./data/genly_billboard.csv", col_names = TRUE) %>%
+  mutate(gen_cate = str_remove(gen_cate, "gen_"),
+         gen_cate = str_replace(gen_cate,"hiphop", "hip-hop/RnB"),
+         lyr_des = as_factor(lyr_des),
+         gen_cate = as_factor(gen_cate)) %>%
+  select(-lyr_gen)
+
+songs_abuse = read_csv("./data/songs_abuse.csv", col_names = TRUE) %>%
+  filter(area == 0) %>%
+  mutate(agegrp = as_factor(agegrp),
+         outcome = as_factor(outcome)) %>%
+  select(-n_lyrics,-total,-stname,-pyearnm)
+```
+### Popular Music Data
+<br>Hip-hop/R&B and rap music are getting popular, while country music and rock music are
+getting less hot.
+
+```{r message=FALSE,warning=FALSE}
+genly %>%
+  filter(lyr_des == "alcohol") %>%
+  mutate(text_label = str_c("Genre: ", gen_cate, "\nPopularity: ", round(p_genre, 2), "% \n(95% CI: ",round(p_gen_lci,2),"% - ",round(p_gen_uci,2),"%)")) %>%
+  rename("Percentage" = "p_genre") %>%
+  plot_ly(
+    x = ~ year,
+    y = ~ Percentage,
+    color = ~ gen_cate,
+    text = ~text_label,
+    type = "scatter",
+    alpha = 0.7
+  ) %>%
+    add_paths() %>%
+    add_ribbons( ymin = ~ p_gen_lci,
+                 ymax = ~ p_gen_uci,
+                 alpha = 0.3)
+```
+
+<br>Generally, substances are more and more often mentioned. Rap music mentioned substances most.
+```{r substance, message=FALSE, warning=FALSE}
+genly %>%
+  filter(gen_cate == "country") %>%
+  mutate(text_label = str_c("Substance mentioned: ", lyr_des, "\nPopularity: ", round(p_lyrics, 2), "% \n(95% CI: ",round(p_lyr_lci,2),"% - ",round(p_lyr_uci,2),"%)")) %>%
+  rename("Percentage" = "p_lyrics") %>%
+  plot_ly(
+    x = ~ year,
+    y = ~ Percentage,
+    color = ~ lyr_des,
+    text = ~text_label,
+    type = "scatter",
+    alpha = 0.7
+  ) %>%
+    add_paths() %>%
+    add_ribbons( ymin = ~ p_lyr_lci,
+                 ymax = ~ p_lyr_uci,
+                 alpha = 0.3)
+```
