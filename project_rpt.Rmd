@@ -44,12 +44,38 @@ In this study, we will describe the trend of music genre, frequency of illicit d
 
 ## Questions
 
-The questions for this project are based on the 2 datasets we used which are explained in the next section:
+The questions for this project are based on the 3 datasets we used which are explained in the next section:
 
 <li>What are the trends of substance use among our interested age group at national level and state level during the period of 1999-2019?</li>
 <li>What are the trends of popular music genre and description of substance use in the lyrics during the period of 1999-2019?</li>
 <li>Is there any association exist between popular music and substance use during the period of 1999-2019?</li>
 
 &nbsp;
-## Data 
+
+## Data
+
+<li>Popular music data: from [Data on Songs from Billboard 1999-2019](https://www.kaggle.com/danield2255/data-on-songs-from-billboard-19992019).</li>
+<li>Illicit drug usage data: from [National Survey on Drug Use and Health (NSDUH) 1999-2019](https://www.datafiles.samhsa.gov/dataset/national-survey-drug-use-and-health-2019-nsduh-2019-ds0001)</li>
+<li>Substance word list: from [Addiction Center.com](https://www.addictioncenter.com/). They are [Drug Street Names](https://www.addictioncenter.com/drugs/drug-street-names/) and [Drug And Alcohol Slang Terms](https://www.addictioncenter.com/drugs/drug-alcohol-slang/).</li>
+### *Variables of Interest*
+#### **Popular Music Dataset**
+* `age`
+* `gender`
+* `race`
+
+
+#### ** Illicit Drug Usage Dataset**
+* `age`
+* `gender`
+* `race`
+* `police_dept`: the police department responsible for the individual's death
+* `year`
+* `city`
+* `state`
+* `criminal_charges`: whether the police officers involved received criminal charges
+* `symptoms_of_mental_illness`: whether the individual killed had symptoms of mental illness
+
+&nbsp;
+
+
 
