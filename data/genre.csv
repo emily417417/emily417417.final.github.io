@@ -1,0 +1,335 @@
+,value,genre_cate
+1,country,country
+2,atlanta,hip-hop/r&;b
+3,alternative country,country
+4,hip-hop,hip-hop/r&;b
+5,trap,hip-hop/r&;b
+6,memes,
+7,remix,
+8,country rap,rap
+9,rap,rap
+10,pop,pop
+11,dark pop,pop
+12,house,
+13,alternative dance,
+14,alternative,
+15,alternative pop,pop
+16,dance-pop,pop
+17,dance,
+18,electro-pop,pop
+19,electro,
+20,synth-pop,pop
+21,canada,
+22,uk,
+23,boy band,
+24,teen pop,pop
+25,pop-rock,rock
+26,east coast,hip-hop/r&;b
+27,basketball,
+28,nba,
+29,alternative r&;b,hip-hop/r&;b
+30,dmv,rap
+31,r&;b,hip-hop/r&;b
+32,disney,
+33,marvel,
+34,soundtrack,
+35,lgbtq+,
+36,ballad,
+37,electronic pop,pop
+38,electronic,
+39,jazz fusion,
+40,adult alternative,
+41,producer,
+42,alternative rock,rock
+43,adult contemporary,
+44,future bass,
+45,dream-pop,pop
+46,bubblegum pop,pop
+47,rock,rock
+48,power pop,pop
+49,classical crossover,
+50,motown,hip-hop/r&;b
+51,latin pop,pop
+52,dancehall,
+53,reggaeton,
+54,en espa\xc3\xb1ol,
+55,latin urban,
+56,latin music,
+57,west coast,hip-hop/r&;b
+58,pop country,country
+59,folk,
+60,musicals,
+61,screen,
+62,hardcore hip-hop,hip-hop/r&;b
+63,experimental,
+64,neo soul,hip-hop/r&;b
+65,neo-psychedelia,
+66,psychedelic,
+67,trip-hop,hip-hop/r&;b
+68,lo-fi,hip-hop/r&;b
+69,pop-punk,rock
+70,puerto rico,
+71,australia,
+72,soul pop,pop
+73,edm,
+74,electro house,
+75,bounce,rap
+76,cover,
+77,soul,
+78,funk,
+79,ambient,
+80,indie pop,pop
+81,progressive house,
+82,dubstep,
+83,electronica,
+84,nederland,
+85,electronic trap,rap
+86,tropical house,
+87,art pop,pop
+88,emo rap,rap
+89,emo,rap
+90,industrial,
+91,scandipop,
+92,scandinavia,
+93,sverige,
+94,feminism,
+95,conscious hip-hop,hip-hop/r&;b
+96,charity,
+97,comedy,
+98,satire,
+99,afrobeats,
+100,climate change,
+101,electro-funk,
+102,funk-pop,pop
+103,colombia,
+104,nu disco,
+105,disco,
+106,nigeria,
+107,psychedelic soul,
+108,indie rock,rock
+109,singer-songwriter,
+110,indie,
+111,children&#39;s music,
+112,worship,
+113,christian pop,pop
+114,christian,
+115,cloud rap,rap
+116,afro trap,rap
+117,new wave,pop
+118,gangsta rap,rap
+119,girl group,
+120,korean,
+121,k-pop (\xec\xbc\x80\xec\x9d\xb4\xed\x8c\x9d),pop
+122,art rock,rock
+123,glam rock,rock
+124,latin trap,rap
+125,dominican republic,
+126,bachata,
+127,acoustic,
+128,chillhop,hip-hop/r&;b
+129,bedroom pop,pop
+130,youtube,
+131,french pop,pop
+132,france,
+133,boom bap,hip-hop/r&;b
+134,aussie hip-hop,hip-hop/r&;b
+135,island music,
+136,tv,
+137,piano,
+138,danmark,
+139,bass music,
+140,reggae,
+141,beef,
+142,instrumental hip-hop,hip-hop/r&;b
+143,cuba,
+144,m\xc3\xa9xico,
+145,retro,
+146,theme song,
+147,gaming,
+148,japan,
+149,screamo,
+150,chillstep,
+151,christmas,
+152,rockabilly,rock
+153,holiday,
+154,alternative metal,rock
+155,rap rock,rock
+156,nu-metal,rock
+157,metal,rock
+158,interlude,
+159,british rock,rock
+160,baroque pop,pop
+161,hard rock,rock
+162,opera,
+163,orchestral,
+164,progressive rock,rock
+165,eighties,
+166,halloween,
+167,deutschland,
+168,synth rock,rock
+169,post-hardcore,rock
+170,electronic rock,rock
+171,punk rock,rock
+172,christian rock,rock
+173,gospel,
+174,protest songs,
+175,doo-wop,hip-hop/r&;b
+176,freestyle,rap
+177,uk rap,rap
+178,jazz,
+179,groove metal,rock
+180,metalcore,rap
+181,ireland,
+182,world music,
+183,easy listening,pop
+184,hard bass,
+185,bassline,
+186,new jack swing,
+187,blue-eyed soul,
+188,contemporary folk,
+189,experimental folk,
+190,experimental pop,pop
+191,americana,
+192,live,
+193,funk rock,rock
+194,trap metal,rap
+195,metalrap,rap
+196,horrorcore,rap
+197,broadway,
+198,american underground,
+199,fashion,
+200,african languages,
+201,south africa,
+202,bay area,
+203,brasil,
+204,em portugu\xc3\xaas,
+205,deep house,
+206,jamaica,
+207,new zealand,
+208,electro-hop,hip-hop/r&;b
+209,politics,
+210,news,
+211,folk rock,rock
+212,memorial,
+213,blues,
+214,brit pop,pop
+215,new orleans r&;b,hip-hop/r&;b
+216,funk nacional,
+217,football (american),
+218,celtic,
+219,bossa nova,
+220,g-funk,hip-hop/r&;b
+221,race / ethnicity,
+222,religion,
+223,grime,rap
+224,dirty south,hip-hop/r&;b
+225,indie rap,rap
+226,blues rock,rock
+227,a cappella,
+228,electro-soul,
+229,p-funk,
+230,glitch,
+231,ragga,
+232,eurodance,
+233,bluegrass,
+234,sports,
+235,psychedelic rock,rock
+236,dab,
+237,swing,
+238,space rock,rock
+239,avant garde,
+240,drum &; bass,
+241,experimental rock,rock
+242,tech,
+243,post-bop,
+244,drill,rap
+245,the voice,
+246,hyphy,rap
+247,post-grunge,rock
+248,jazz-funk,
+249,literature,
+250,synthwave,
+251,civil rights,
+252,deutscher rap,rap
+253,progressive metal,rock
+254,non-music,
+255,norge,
+256,shadyxv,
+257,downtempo,
+258,parody,
+259,latin rock,rock
+260,ska,
+261,japanese,
+262,j-pop,pop
+263,romanticism literature,
+264,industrial rock,rock
+265,chill,
+266,dark ambient,
+267,glitch hop,hip-hop/r&;b
+268,spanish music,
+269,new age,
+270,polska,
+271,trance,
+272,salsa,
+273,rapcore,rap
+274,drumstep,
+275,posse cut,
+276,american idol,
+277,english translation,
+278,translation,
+279,philosophy,
+280,chicago drill,rap
+281,roots,
+282,french r&;b,hip-hop/r&;b
+283,post-punk,rock
+284,sertanejo,
+285,techno,
+286,hi-nrg,
+287,grunge,rock
+288,italy,
+289,thrash metal,rock
+290,heavy metal,rock
+291,portugal,
+292,melodic metalcore,rap
+293,mashup,
+294,classical music,
+295,merengue,
+296,crunk,hip-hop/r&;b
+297,gothic rock,rock
+298,football (soccer),
+299,big band,
+300,ska punk,rock
+301,chamber music,
+302,soul jazz,
+303,google,
+304,speed metal,rock
+305,power metal,rock
+306,military,
+307,jazz rap,rap
+308,garage punk,rock
+309,garage rock,rock
+310,industrial metal,rock
+311,sing along,
+312,post-punk revival,rock
+313,underground hip-hop,hip-hop/r&;b
+314,french rap,rap
+315,fairy tale / nursery rhyme,
+316,lullaby,
+317,stoner rock,rock
+318,dipset,
+319,soca,
+320,calypso,
+321,qu\xc3\xa9bec,
+322,skate punk,rock
+323,gothic metal,rock
+324,\xd0\xa0\xd0\xbe\xd1\x81\xd1\x81\xd0\xb8\xd1\x8f (russia),
+325,go-go,
+326,heartland rock,rock
+327,christian metal,rock
+328,chart history,
+329,bolivia,
+330,haiti,
+331,spoken word,
+332,anime,
+333,symphonic metal,rock
+334,hockey,
