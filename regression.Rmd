@@ -14,7 +14,7 @@ output:
 - From the EDA, we know that the magnitude of the effect of marijuana description on marijuana use varies across states and age groups.
 - Based on the information above, we construct linear regression models, using 3 marijuana usage/perception parameters as an outcome, and using the percentage of marijuana description, age group (reference group: 12-17 years old), and states (reference group: National).
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set()
 library(tidyverse)
 library(modelr)
 library(patchwork)
