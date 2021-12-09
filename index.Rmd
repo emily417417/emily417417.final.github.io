@@ -77,7 +77,7 @@ In the Interactive Maps tab, you will find:
 
 # Team members
 <ul>
-<li>[Ling Guo](https://Ling707_p8105hw4_github.io/)</li>
+<li>[Ling Guo](https://ling707.github.io/Ling707_p8105hw4_github.io/about.html)</li>
 <li>[Mingkuan Xu](https://Mingkuanxu.github.io)</li>
 <li>[Shibei Xu](https://shibeixxu.github.io/ShibeiXu.github.io/)</li>
 <li>[Wenyi Liu](http://emily417417.github.io/)</li>
