@@ -1,0 +1,210 @@
+---
+title: "Regression analysis"
+output: 
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+---
+- From the explanatory data analysis, we can know that there's potential linear association between marijuana description in the lyrics and marijuana use. Thus, in this page, we analyzed the association between marijuana description and marijuana use.
+- According to the NSDUH data, there are 3 parameters related to marijuana:
+  - Marijuana usage in the past month
+  - Risk perception of using marijuana once a month
+  - Annual incidence of first marijuana use ever
+- From the EDA, we know that the magnitude of the effect of marijuana description on marijuana use varies across states and age groups.
+- Based on the information above, we construct linear regression models, using 3 marijuana usage/perception parameters as an outcome, and using the percentage of marijuana description, age group (reference group: 12-17 years old), and states (reference group: National).
+```{r setup, include=FALSE}
+knitr::opts_chunk$set()
+library(tidyverse)
+library(modelr)
+library(patchwork)
+```
+```{r load data and marijuana use, out.width='90%', message = FALSE, warning = FALSE}
+songs_abuse = read_csv("./data/songs_abuse.csv", col_names = TRUE) %>%
+  filter(outcome %in% c("Marijuana use in the past month",
+                        "Annual incidence of first use of marijuana",
+                        "Risk perception on smoking marijuana once a month") & lyr_des == "marijuana" & area != 1) %>%
+  select(year, p_lyrics, agegrp, bsae, stname, outcome) %>%
+  mutate(stname = as_factor(stname),
+         agegrp = as_factor(agegrp))
+
+line_mod = lm(bsae ~ p_lyrics + relevel(stname, ref = "National") + relevel(agegrp, ref = "12-17 y/o"),songs_abuse)
+
+intercept = function(y){
+  songs_abuse %>%
+  filter(outcome == y) %>%
+  lm(bsae ~ p_lyrics + relevel(stname, ref = "National") + relevel(agegrp, ref = "12-17 y/o"),.) %>%
+  broom::tidy() %>%
+  janitor::clean_names() %>%
+  mutate(term = gsub("[()]", "", term),
+    term = str_remove(term, "relevelstname, ref = \"National\""),
+    term = str_remove(term, "relevelagegrp, ref = \"12-17 y/o\""),
+    lci = estimate - 12.706 * std_error,
+    uci = estimate + 12.706 * std_error)
+}
+
+rsq = function(y){
+  songs_abuse %>%
+  filter(outcome == y) %>%
+  lm(bsae ~ p_lyrics + relevel(stname, ref = "National") + relevel(agegrp, ref = "12-17 y/o"),.) %>%
+  broom::glance()
+}
+
+pred = function(y){
+  songs_abuse %>%
+  filter(outcome == y) %>%
+  add_predictions(line_mod)
+}
+
+mu = intercept("Marijuana use in the past month")
+mu_rsq = rsq("Marijuana use in the past month")
+mu_pred = pred("Marijuana use in the past month")
+
+general_mu = mu_pred %>%
+  filter(stname == "National") %>%
+  ggplot(aes(x = p_lyrics, y = bsae)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(title = "Linear relationship between\nmarijuana description and marijuana use in the past month,\nadjusting for state and age \n   marijuana use = 3.33 + 0.18 * (marijuana description + state + (age group))\n  (p<0.05, R^2 = 0.86)",
+         x = "Marijuana description (%)",
+         y = "Marijuana use in the past month (%)") +
+  facet_wrap(.~agegrp)
+
+age_dif_mu = mu %>%
+  filter( term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(x = "Age group",
+         y = "Marijuana use in the past month, \ncomparing to 12-17 years old, adjusting for state (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+general_mu + age_dif_mu
+```
+```{r state_mu, fig.asp = 1.2, out.width="90%",message = FALSE, warning = FALSE}
+state_dif_mu = mu %>%
+  slice(-1,-2) %>%
+  filter( !term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(title = "linear relationship between\nmarijuana description and marijuana use in the past month",
+         x = "State",
+         y = "Marijuana use in the past month, \ncomparing to national overall data, adjusting for age group (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+state_dif_mu
+```
+
+```{r marijuana incidence, out.width="90%",message = FALSE, warning = FALSE}
+fu = intercept("Annual incidence of first use of marijuana")
+fu_rsq = rsq("Annual incidence of first use of marijuana")
+fu_pred = pred("Annual incidence of first use of marijuana")
+
+general_fu = fu_pred %>%
+  filter(stname == "National") %>%
+  ggplot(aes(x = p_lyrics, y = bsae)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(title = "Linear relationship between\nmarijuana description and annual incidence of first use of marijuana,\nadjusting for state and age \n   marijuana use = 5.02 + 0.04 * (marijuana description + state + (age group))\n  (p<0.05, R^2 = 0.90)",
+         x = "Marijuana description (%)",
+         y = "Annual incidence of first use of marijuana (%)") +
+  facet_wrap(.~agegrp)
+
+age_dif_fu = fu %>%
+  filter( term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(x = "Age group",
+         y = "Annual incidence of first use of marijuana, \ncomparing to 12-17 years old, adjusting for state (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+general_fu + age_dif_fu
+```
+```{r state_fu, out.width="90%", fig.asp=1.2,message = FALSE, warning = FALSE}
+state_dif_fu = fu %>%
+  slice(-1,-2) %>%
+  filter( !term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(x = "State",
+         y = "Annual incidence of first use of marijuana, \ncomparing to national overall data, adjusting for age group (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+state_dif_fu
+```
+
+
+```{r marijuana perception, out.width="90%",message = FALSE, warning = FALSE}
+ru = intercept("Risk perception on smoking marijuana once a month")
+ru_rsq = rsq("Risk perception on smoking marijuana once a month")
+ru_pred = pred("Risk perception on smoking marijuana once a month")
+
+general_ru = ru_pred %>%
+  filter(stname == "National") %>%
+  ggplot(aes(x = p_lyrics, y = bsae)) +
+    geom_point() +
+    geom_smooth(method = "lm") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  labs(title = "Linear relationship between\nmarijuana description and risk perception on smoking marijuana once a month,\nadjusting for state and age \n   marijuana use = 42.46 - 0.48 * marijuana description + state + (age group))\n  (p<0.05, R^2 = 0.76)",
+         x = "Marijuana description (%)",
+         y = "Risk perception on smoking marijuana once a month (%)") +
+  facet_wrap(.~agegrp)
+
+age_dif_ru = ru %>%
+  filter( term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(x = "Age group",
+         y = "Risk perception on smoking marijuana once a month, \ncomparing to 12-17 years old, adjusting for state (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+general_ru + age_dif_ru
+```
+
+```{r, fig.asp=1.2, out.width="90%",message = FALSE, warning = FALSE}
+state_dif_ru = ru %>%
+  slice(-1,-2) %>%
+  filter( !term %in% c("18-25 y/o", ">=26 y/o")) %>%
+  ggplot(aes(x = reorder(as_factor(term), -estimate), y = estimate, color = reorder(as_factor(term), -estimate))) +
+    geom_point() +
+    geom_errorbar(aes(ymin = lci,
+                      ymax = uci)) +
+    geom_hline(yintercept = 0) +
+    labs(x = "State",
+         y = "Risk perception on smoking marijuana once a month, \ncomparing to national overall data, adjusting for age group (%)") +
+  theme_minimal() +
+  theme(legend.position = "none") +
+  coord_flip()
+
+state_dif_ru
+```
+
