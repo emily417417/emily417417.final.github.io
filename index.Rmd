@@ -36,19 +36,25 @@ The Illicit Drug Use Data acquired from [National Survey on Drug Use and Health 
 
 
 
-In the Exploratory Analyses tab, you will find:
+In the Exploratory analyses Part-1 tab, you will find:
 <ul>
-<li>Analyses of mapping police violence data, through visualizations,</li>
-<li>Analyses of protest data, through visualizations; and,</li>
+<li>Analysis of the popular music trend from 1999 to 2019, as well as the trend of substance use during this period at national level </li>
+</ul>
+In the Exploratory analysis Part-2 tab, you will find:
+<ul>
+<li>Analysis of the relationship between substance use and the trend of substance description in the lyric  </li>
 </ul>
 
 In the Regression Analyses tab, you will find:
 <ul>
-<li>Logistic analyses investigating police violence data through charges laid against police and reported symptoms of mental illness as outcomes; and,</li>
-<li>Poisson and negative binomial models investigating associations between income at the county-level and number of protests per county.</li>
+<li>Logistic analyses ; and,</li>
+<li>XXX models investigating associations between income at the county-level and number of protests per county.</li>
 </ul>
 
-The interactive maps tab will lead you to a dashboard that includes interactive maps and plots that will change depending on your selection. From here, you can explore instances of police violence and protests held over time geographically.
+In the Interactive Maps tab, you will find:
+<ul>
+<li>A dashboard which includes a box plot, a line chart and an interactive geographical map that users can explore the trend of substance use in every states during the period of 1999 to 2019.</li>
+</ul>
 
 &nbsp;
 
@@ -73,7 +79,7 @@ The interactive maps tab will lead you to a dashboard that includes interactive 
 <ul>
 <li>[Ling Guo](https://Ling707_p8105hw4_github.io/)</li>
 <li>[Mingkuan Xu](https://Mingkuanxu.github.io)</li>
-<li>[Shibei Xu](https://shibeixxu.github.io)</li>
+<li>[Shibei Xu](https://shibeixxu.github.io/ShibeiXu.github.io/)</li>
 <li>[Wenyi Liu](http://emily417417.github.io/)</li>
 </ul>
 
