@@ -1,0 +1,214 @@
+---
+title: "EDA - Popular music trend"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: scroll
+    source_code: embed
+---
+
+- In this page, we analyzed the popular music trend from 1999 to 2019 (left), as well as the trend of substance use and the trend of substance description during this period at national level (right).
+
+  - Hip-hop/R&B and rap music are getting popular, while country music and rock music are getting less hot.
+  - Generally, substances are more and more often mentioned.
+  - Rap music mentioned substances most.
+  
+  - People aged 26 years and older are getting more likely to binge drinking, though people aged 18-25 years old drink the most.
+  - With the increasing proportion of marijuana description in popular songs, more and more people aged 18-25 years used marijuana.
+  - With the increasing proportion of marijuana description in popular songs, people get less likely to consider using marijuana once a month is risky. People aged 18-25 years old are least likely to think so.
+  - The trend in other illicit drugs are not obvious.
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(plotly)
+
+genly = read_csv("./data/genly_billboard.csv", col_names = TRUE) %>%
+  mutate(gen_cate = str_remove(gen_cate, "gen_"),
+         gen_cate = str_replace(gen_cate,"hiphop", "hip-hop/RnB"),
+         lyr_des = as_factor(lyr_des),
+         gen_cate = as_factor(gen_cate)) %>%
+  select(-lyr_gen)
+
+songs_abuse = read_csv("./data/songs_abuse.csv", col_names = TRUE) %>%
+  filter(area == 0) %>%
+  mutate(agegrp = as_factor(agegrp),
+         outcome = as_factor(outcome)) %>%
+  select(-n_lyrics,-total,-stname,-pyearnm)
+```
+
+Column {.tabset data-width=400}
+-----------------------------------------------------------------------
+
+### Genre popularity trend
+
+```{r}
+genly %>%
+  filter(lyr_des == "alcohol") %>%
+  mutate(text_label = str_c("Genre: ", gen_cate, "\nPopularity: ", round(p_genre, 2), "% \n(95% CI: ",round(p_gen_lci,2),"% - ",round(p_gen_uci,2),"%)")) %>%
+  rename("Percentage" = "p_genre") %>%
+  plot_ly(
+    x = ~ year,
+    y = ~ Percentage,
+    color = ~ gen_cate,
+    text = ~text_label,
+    type = "scatter",
+    alpha = 0.7
+  ) %>%
+    add_paths() %>%
+    add_ribbons( ymin = ~ p_gen_lci,
+                 ymax = ~ p_gen_uci,
+                 alpha = 0.3)
+```
+
+### Substance description trend
+```{r}
+genly %>%
+  filter(gen_cate == "country") %>%
+  mutate(text_label = str_c("Substance mentioned: ", lyr_des, "\nPopularity: ", round(p_lyrics, 2), "% \n(95% CI: ",round(p_lyr_lci,2),"% - ",round(p_lyr_uci,2),"%)")) %>%
+  rename("Percentage" = "p_lyrics") %>%
+  plot_ly(
+    x = ~ year,
+    y = ~ Percentage,
+    color = ~ lyr_des,
+    text = ~text_label,
+    type = "scatter",
+    alpha = 0.7
+  ) %>%
+    add_paths() %>%
+    add_ribbons( ymin = ~ p_lyr_lci,
+                 ymax = ~ p_lyr_uci,
+                 alpha = 0.3)
+```
+
+### Substance x Genres
+
+```{r}
+genly %>%
+  group_by(gen_cate) %>%
+  mutate(text_label = str_c("Genre: ", gen_cate,
+                            "\nSubstance mentioned: ", lyr_des,
+                            "\nPopularity: ", round(p_genre, 2), "% \n(95% CI: ",round(p_gen_lci,2),"% - ",round(p_gen_uci,2),"%)")) %>%
+  rename("Percentage" = "p_lyrgen") %>%
+  do( p = plot_ly(.,
+    x = ~ year,
+    y = ~ Percentage,
+    color = ~ lyr_des,
+    text = ~text_label,
+    type = "scatter",
+    alpha = 0.7) %>%
+    add_paths() %>%
+    add_ribbons( ymin = ~ p_lyrgen_lci,
+                 ymax = ~ p_lyrgen_uci,
+                 alpha = 0.3) %>%
+    add_annotations(text = ~gen_cate,
+                    showarrow = FALSE,
+                    x = 2010, y = 80,
+                    xanchor = "middle",
+                    yanchor = "top",
+                    font = list(size = 15))) %>%
+  subplot(nrows = 2, shareX = TRUE, shareY = TRUE)
+```
+
+
+
+Column {.tabset data-width=600}
+-----------------------------------------------------------------------
+
+### Binge drinking
+
+```{r}
+songs_abuse %>%
+  filter(outcome == "Binge drinking in the last month" & lyr_des == "alcohol") %>%
+  mutate(text_label = str_c("Year: ", year,
+                            "\nAge group: ", agegrp,
+                            "\nBinge drinking(%, 95% CI): ", round(bsae, 2), " (", round(low_sae, 2)," - ",round(up_sae, 2),")",
+                            "\nAlcohol description(%, 95% CI):", round(p_lyrics, 2), " (", round(p_lci, 2)," - ",round(p_uci, 2),")")) %>%
+  plot_ly(x = ~ year,
+          y = ~ bsae,
+          color = ~ agegrp,
+          text = ~ text_label,
+          type = "scatter",
+          mode = "paths",
+          alpha = 0.7) %>%
+  add_ribbons(ymin = ~ low_sae, ymax = ~ up_sae, alpha = 0.3) %>%
+  add_trace(x = ~ year, y = ~ p_lyrics, type = "scatter", mode = "paths", text = ~ paste("Alcohol description (%): ", round(p_lyrics,2))) %>%
+  add_ribbons(ymin = ~ p_lci, ymax = ~ p_uci, alpha = 0.3) %>%
+  layout(title = "The relationship between \nbinge drinking in the last month and alcohol description in the lyrics,\nat national level",
+          yaxis = list(title = "Percentage(%)"),
+         legend = list(title = list(text = 'Grey line: \n  alcohol description \nin the lyrics(%, 95% CI) \n \nAge group')))
+  
+```
+
+### Marijuana usage
+
+```{r}
+songs_abuse %>%
+  filter(outcome == "Marijuana use in the past month" & lyr_des == "marijuana") %>%
+  mutate(text_label = str_c("Year: ", year,
+                            "\nAge group: ", agegrp,
+                            "\nMarijuana use(%, 95% CI): ", round(bsae, 2), " (", round(low_sae, 2)," - ",round(up_sae, 2),")",
+                            "\nMarijuana description(%, 95% CI):", round(p_lyrics, 2), " (", round(p_lci, 2)," - ",round(p_uci, 2),")")) %>%
+  plot_ly(x = ~ year,
+          y = ~ bsae,
+          color = ~ agegrp,
+          text = ~ text_label,
+          type = "scatter",
+          mode = "paths",
+          alpha = 0.7) %>%
+  add_ribbons(ymin = ~ low_sae, ymax = ~ up_sae, alpha = 0.3) %>%
+  add_trace(x = ~ year, y = ~ p_lyrics, type = "scatter", mode = "paths", text = ~ paste("Marijuana description (%): ", round(p_lyrics,2))) %>%
+  add_ribbons(ymin = ~ p_lci, ymax = ~ p_uci, alpha = 0.3) %>%
+  layout(title = "The relationship between \nmarijuana use in the last month and alcohol description in the lyrics,\nat national level",
+         yaxis = list(title = "Percentage(%)"),
+         legend = list(title = list(text = 'Grey line: \n  marijuana description \nin the lyrics(%, 95% CI) \n \nAge group')))
+```
+
+### Marijuana perception
+
+```{r}
+songs_abuse %>%
+  filter(outcome == "Risk perception on smoking marijuana once a month" & lyr_des == "marijuana") %>%
+  mutate(text_label = str_c("Year: ", year,
+                            "\nAge group: ", agegrp,
+                            "\nMarijuana perception(%, 95% CI): ", round(bsae, 2), " (", round(low_sae, 2)," - ",round(up_sae, 2),")",
+                            "\nMarijuana description(%, 95% CI):", round(p_lyrics, 2), " (", round(p_lci, 2)," - ",round(p_uci, 2),")")) %>%
+  plot_ly(x = ~ year,
+          y = ~ bsae,
+          color = ~ agegrp,
+          text = ~ text_label,
+          type = "scatter",
+          mode = "paths",
+          alpha = 0.7) %>%
+  add_ribbons(ymin = ~ low_sae, ymax = ~ up_sae, alpha = 0.3) %>%
+  add_trace(x = ~ year, y = ~ p_lyrics, type = "scatter", mode = "paths", text = ~ paste("Marijuana description (%): ", round(p_lyrics,2))) %>%
+  add_ribbons(ymin = ~ p_lci, ymax = ~ p_uci, alpha = 0.3) %>%
+  layout(title = "The relationship between \nrisk percetion on using marijuana once a month and marijuana description in the lyrics,\nat national level",
+        yaxis = list(title = "Percentage(%)"),
+         legend = list(title = list(text = 'Grey line: \n  marijuana description \nin the lyrics(%, 95% CI) \n \nAge group')))
+```
+
+### Other illicit drug usage
+
+```{r}
+songs_abuse %>%
+  filter(outcome == "Illicit drugs other than marijuana use in the last month" & lyr_des == "other_illicit") %>%
+  mutate(text_label = str_c("Year: ", year,
+                            "\nAge group: ", agegrp,
+                            "\nIllicit drug other than marijuana use(%, 95% CI): ", round(bsae, 2), " (", round(low_sae, 2)," - ",round(up_sae, 2),")",
+                            "\nOther illicit drug description(%, 95% CI):", round(p_lyrics, 2), " (", round(p_lci, 2)," - ",round(p_uci, 2),")")) %>%
+  plot_ly(x = ~ year,
+          y = ~ bsae,
+          color = ~ agegrp,
+          text = ~ text_label,
+          type = "scatter",
+          mode = "paths",
+          alpha = 0.7) %>%
+  add_ribbons(ymin = ~ low_sae, ymax = ~ up_sae, alpha = 0.3) %>%
+  add_trace(x = ~ year, y = ~ p_lyrics, type = "scatter", mode = "paths", text = ~ paste("Other illicit drug description (%): ", round(p_lyrics,2))) %>%
+  add_ribbons(ymin = ~ p_lci, ymax = ~ p_uci, alpha = 0.3) %>%
+  layout(title = "The relationship between \nother illicit drug usage in the last month and other illicit drug description in the lyrics, \nat national level",
+         yaxis = list(title = "Percentage(%)"),
+         legend = list(title = list(text = 'Grey line: \n  other illicit drug description \nin the lyrics(%, 95% CI) \n \nAge group')))
+```
+
