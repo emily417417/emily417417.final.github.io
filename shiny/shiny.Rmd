@@ -32,14 +32,14 @@ abuse_state_data = read_csv("./songs_abuse.csv") %>%
   mutate(agegrp = ifelse(agegrp == ">=26 y/o","26+ y/o",agegrp)) %>%
   mutate(description = ifelse(description == "other_illicit","other illicit drugs",description)) 
 
+abuse_state_data %>% filter(year == 2003) %>% view()
 ```
 
 Column {.sidebar}
 -----------------------------------------------------------------------
-This `flexdashboard` with Shiny was made for [the final project](https://github.com/emily417417/emily417417.final.github.io) of P8105 in the Department of Biostatistics at Columbia University.
+In this shiny dashboard of our [final project](https://github.com/emily417417/emily417417.final.github.io), we examined the level of drug abuse by state, age group and year.
 
 ```{r}
-
 drug_choice = abuse_state_data %>% distinct(description) %>% pull
 radioButtons("drug_choice", label = h4("Choose drug type"),
     choices = drug_choice, 
@@ -58,7 +58,6 @@ states = abuse_state_data %>%
   distinct(state)
 
 selectInput("state",label = h4("Choose state"), choices = states,selected = "Alabama")
-
 ```
 
 Row {.tabset .tabset-fade } 
@@ -67,18 +66,16 @@ Row {.tabset .tabset-fade }
 ### Drug abuse by state
 
 ```{r}
-
 renderPlot({
-  abuse_data = abuse_state_data %>%
+  abuse_by_state_data = abuse_state_data %>%
   filter(year==input$year,
          description==input$drug_choice,
          agegrp==input$agegrp_choice)
   
   us_states <- map_data("state")
   
-  states_abuse_data = left_join(us_states,abuse_data,by=c("region"="stname"))
-  p = ggplot(data = states_abuse_data,
-              mapping = aes(x = long, y = lat, group = group, fill = bsae)) +
+  states_abuse_data = left_join(us_states,abuse_by_state_data,by=c("region"="stname"))
+  states_abuse_data %>% ggplot(mapping = aes(x = long, y = lat, group = group, fill = bsae)) +
     coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
     geom_polygon(color = "gray50", size = 0.1) +
     scale_fill_continuous(type = "viridis",name = "percentage") +
@@ -93,26 +90,24 @@ renderPlot({
       panel.border=element_blank(),
       panel.grid=element_blank()) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by state in",input$year))
+      title = paste("Abuse of",input$drug_choice,
+                    "in different states in",input$year,
+                    "for the age group of",input$agegrp_choice))
 
-p
 })
-
-
 ```
-
 
 ### Drug abuse by age group
 
 ```{r}
-
 renderPlot({ 
   
   abuse_by_age_data = abuse_state_data %>%
   filter(year==input$year,
          description==input$drug_choice) 
   
-  abuse_by_age_data %>% ggplot(aes(x=agegrp,y=bsae,fill=agegrp)) + 
+  abuse_by_age_data %>% 
+    ggplot(aes(x=agegrp,y=bsae,fill=agegrp)) + 
     geom_boxplot() + 
     scale_fill_viridis(discrete = TRUE,name = "age group") +
     theme_bw() +
@@ -122,7 +117,7 @@ renderPlot({
       axis.title=element_text(size=14),
       title =element_text(size=14)) + 
     labs(
-      title = paste("Abuse of",input$drug_choice,"by age group in",input$year),
+      title = paste("Abuse of",input$drug_choice,"in different age groups in",input$year),
       x = "age group",
       y = "percentage")
 })
@@ -132,25 +127,22 @@ renderPlot({
 
 ```{r}
 renderPlot({ 
-  
   abuse_by_year_data = abuse_state_data %>%
   filter(stname==tolower(input$state)) %>%
   filter(description==input$drug_choice)
-    #plot_ly(x = ~year, y = ~bsae, color = ~description, type = "scatter", mode = "lines",
-    #      colors = "Set2") 
-    abuse_by_year_data %>% 
-      ggplot(aes(x=year,y=bsae,group=agegrp,color=agegrp)) + 
-      geom_point() + geom_line() + 
-      scale_color_viridis(discrete=TRUE,name = "age group") + 
-      theme_bw() +
-      theme(
-        plot.title = element_text(hjust = 0.5),
-        axis.text=element_text(size=12),
-        axis.title=element_text(size=14),
-        title = element_text(size=14))  + 
-      labs(
-        title = paste("Abuse of",input$drug_choice,"by year within",input$state),
-        y = "percentage")
+  
+  abuse_by_year_data %>% 
+    ggplot(aes(x=year,y=bsae,group=agegrp,color=agegrp)) + 
+    geom_point() + geom_line() + 
+    scale_color_viridis(discrete=TRUE,name = "age group") + 
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      axis.text=element_text(size=12),
+      axis.title=element_text(size=14),
+      title = element_text(size=14))  + 
+    labs(
+      title = paste("Abuse of",input$drug_choice,"from 1999 to 2018 in",input$state),
+      y = "percentage")
 })
-
 ```
