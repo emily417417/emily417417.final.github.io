@@ -1,0 +1,27 @@
+name: "Does illicit drug use motivated by billboard music?"
+output_dir: "."
+navbar:
+  title: "Home"
+  left:
+    - text: "Exploratory Analyses Part-1"
+      menu:
+        - text: "Part-1"
+          href: song_dashboard.html
+        - text: "Part-2"
+          href: drugdashboard.html
+    - text: "Regression Analyses"
+      menu:
+        - text: "XXX ananlysis"
+          href: regression_mpv.html
+    - text: "Interactive Maps"
+      href: https://mingkuanxu.shinyapps.io/p8105_final_project/
+  right:
+    - text: "Project Report"
+      href: proj_report.html
+    - icon: fa-youtube
+      href: https://www.youtube.com/watch?v=5oObMqzIwXU
+    - icon: fa-github fa-lg
+      href: https://github.com/rebekahhughes97/p8105_final_proj.github.io.git
+output:
+  html_document:
+    theme: lumen
