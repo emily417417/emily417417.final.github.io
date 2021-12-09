@@ -36,19 +36,15 @@ The Illicit Drug Use Data acquired from [National Survey on Drug Use and Health 
 
 
 
-In the Exploratory analyses Part-1 tab, you will find:
+In the Exploratory analyses, you will find:
 <ul>
-<li>Analysis of the popular music trend from 1999 to 2019, as well as the trend of substance use during this period at national level </li>
-</ul>
-In the Exploratory analysis Part-2 tab, you will find:
-<ul>
-<li>Analysis of the relationship between substance use and the trend of substance description in the lyric  </li>
+<li>Analysis of the popular music trend from 1999 to 2019, as well as the trend of substance use during this period at national level, and analysis of the relationship between substance use and the trend of substance description in the lyric </li>
 </ul>
 
 In the Regression Analyses tab, you will find:
 <ul>
-<li>Logistic analyses ;</li>
-<li>XXX models investigating associations between income at the county-level and number of protests per county.</li>
+<li>Potential linear association between marijuana description in the lyrics and marijuana use.
+
 </ul>
 
 In the Interactive Maps tab, you will find:
