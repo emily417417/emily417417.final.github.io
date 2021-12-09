@@ -47,7 +47,7 @@ In the Exploratory analysis Part-2 tab, you will find:
 
 In the Regression Analyses tab, you will find:
 <ul>
-<li>Logistic analyses ; and,</li>
+<li>Logistic analyses ;</li>
 <li>XXX models investigating associations between income at the county-level and number of protests per county.</li>
 </ul>
 
@@ -59,18 +59,18 @@ In the Interactive Maps tab, you will find:
 &nbsp;
 
 # Additional Information
-1. Visit the [Project Report](proj_report.html) tab in the upper right of the website for a full page write-up on what was done from start to finish in this project; and
+1. Visit the [Project Report](proj_report.html) tab in the upper right of the website for a full page write-up on what was done from start to finish in this project
 2. Visit our project Youtube video, linked in the upper right corner of the website, for a brief introduction and overview of the project.
 
 &nbsp;
 
 # Refernece
 <li>[1] Music festivals and drugs: Wastewater analysis
-(https://pubmed.ncbi.nlm.nih.gov/30599351/)
+(https://pubmed.ncbi.nlm.nih.gov/30599351/)</li>
 <li>[2] Booze, Drugs, and Pop Music: Trends in Substance Portrayals in the Billboard Top 100
-(https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433/)
+(https://www.tandfonline.com/doi/full/10.3109/10826084.2012.637433/)</li>
 <li>[3] Content analysis of tobacco, alcohol, and other drugs in popular music
-(https://pubmed.ncbi.nlm.nih.gov/18250243/)
+(https://pubmed.ncbi.nlm.nih.gov/18250243/)</li>
 
 &nbsp;
 
