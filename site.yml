@@ -3,7 +3,7 @@ output_dir: "."
 navbar:
   title: "Home"
   left:
-    - text: "Exploratory Analyses Part-1"
+    - text: "Exploratory Analyses"
       menu:
         - text: "Part-1"
           href: song_dashboard.html
