@@ -1,0 +1,147 @@
+---
+title: "Drug Abuse Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: row
+    source_code: embed
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(janitor)
+library(stringr)
+library(viridis)
+library(shiny)
+library(maps)
+library(mapproj)
+```
+
+```{r import_data}
+abuse_state_data = read_csv("./songs_abuse.csv") %>%
+  filter(area==2) %>%
+  select(year,description,bsae,stname,agegrp,outcome) %>%
+  mutate(stname = tolower(stname)) %>%
+  filter((description=="marijuana" & 
+          outcome == "Marijuana use in the past month")|
+         (description=="alcohol" & 
+            outcome == "Binge drinking in the last month")|
+         (description=="other_illicit" & 
+            outcome == "Any illicit drug use in the last month")) %>%
+  mutate(agegrp = ifelse(agegrp == ">=26 y/o","26+ y/o",agegrp)) %>%
+  mutate(description = ifelse(description == "other_illicit","other illicit drugs",description))
+
+```
+
+Column {.sidebar}
+-----------------------------------------------------------------------
+This `flexdashboard` with Shiny was made for [the final project](https://github.com/emily417417/emily417417.final.github.io) of P8105 in the Department of Biostatistics at Columbia University.
+
+```{r}
+
+drug_choice = abuse_state_data %>% distinct(description) %>% pull
+radioButtons("drug_choice", label = h4("Choose drug type"),
+    choices = drug_choice, 
+    selected = "marijuana")
+
+sliderInput("year", label = h4("Choose year"), min = 1999, 
+        max = 2019, value = c(1999),dragRange = FALSE)
+
+agegrp_choice = abuse_state_data %>% distinct(agegrp) %>% pull
+radioButtons("agegrp_choice", label = h4("Choose age group"),
+    choices = agegrp_choice, 
+    selected = "12-18 y/o")
+
+states = abuse_state_data %>% 
+  mutate(state = str_to_title(stname)) %>%
+  distinct(state)
+
+selectInput("state",label = h4("Choose state"), choices = states,selected = "Alabama")
+
+```
+
+Row {.tabset .tabset-fade } 
+-----------------------------------------------------------------------
+
+### Drug abuse by state
+
+```{r}
+
+renderPlot({
+  abuse_data = abuse_state_data %>%
+  filter(year==input$year,
+         description==input$drug_choice,
+         agegrp==input$agegrp_choice)
+  
+  us_states <- map_data("state")
+  
+  states_abuse_data = left_join(us_states,abuse_data,by=c("region"="stname"))
+  p = ggplot(data = states_abuse_data,
+              mapping = aes(x = long, y = lat, group = group, fill = bsae)) +
+    coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+    geom_polygon(color = "gray50", size = 0.1) +
+    scale_fill_continuous(type = "viridis") +
+    theme(
+      plot.title = element_text(hjust = 0.5),
+      axis.line=element_blank(),
+      axis.text=element_blank(),
+      axis.ticks=element_blank(),
+      axis.title=element_blank(),
+      panel.background=element_blank(),
+      panel.border=element_blank(),
+      panel.grid=element_blank()) + 
+    labs(
+      title = paste("Abuse of",input$drug_choice,"by state"),
+      colour="bsae")
+
+p
+})
+
+
+```
+
+
+### Drug abuse by age group
+
+```{r}
+
+renderPlot({ 
+  
+  abuse_by_age_data = abuse_state_data %>%
+  filter(year==input$year,
+         description==input$drug_choice) 
+  
+  abuse_by_age_data %>% ggplot(aes(x=agegrp,y=bsae,fill=agegrp)) + 
+    geom_boxplot() + 
+    scale_fill_viridis(discrete = TRUE) +
+    theme_bw() +
+    theme(
+      plot.title = element_text(hjust = 0.5)) + 
+    labs(
+      title = paste("Abuse of",input$drug_choice,"by age group"))
+
+})
+```
+
+### Drug abuse by year
+
+```{r}
+renderPlot({ 
+  
+  abuse_by_year_data = abuse_state_data %>%
+  filter(stname==tolower(input$state)) %>%
+  filter(description==input$drug_choice)
+    #plot_ly(x = ~year, y = ~bsae, color = ~description, type = "scatter", mode = "lines",
+    #      colors = "Set2") 
+    abuse_by_year_data %>% 
+      ggplot(aes(x=year,y=bsae,group=agegrp,color=agegrp)) + 
+      geom_point() + geom_line() + scale_color_viridis(discrete=TRUE) + 
+      theme_bw() +
+      theme(
+        plot.title = element_text(hjust = 0.5)) + 
+      labs(
+        title = paste("Abuse of",input$drug_choice,"by year within",input$state))
+})
+
+```
