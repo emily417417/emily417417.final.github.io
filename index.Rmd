@@ -82,5 +82,3 @@ In the Interactive Maps tab, you will find:
 <li>[Shibei Xu](https://shibeixxu.github.io/ShibeiXu.github.io/)</li>
 <li>[Wenyi Liu](http://emily417417.github.io/)</li>
 </ul>
-
-
