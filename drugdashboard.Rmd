@@ -3,8 +3,19 @@ title: "drug dashboard"
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
-    vertical_layout: fill
+    vertical_layout: scroll
+    source_code: embed
 ---
+In this page, we showed:
+
+- The relationship between the Marijuana use and marijuana lyric trends
+
+- Mean prevalence rates (%) of Marijuana/other than Marijuana/binge drinking use by age group 
+
+- Risk perception on smoking marijuana once a month
+
+- Annual incidence of first use of marijuana
+
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
@@ -12,37 +23,34 @@ library(plotly)
 library(tidyverse)
 ```
 
-
 ```{r}
 songs_abuse=read_csv("./data/songs_abuse.csv")
 ```
 
-Column {data-width=650}
+Column {.tabset data-width=600}
 -----------------------------------------------------------------------
 
-### Chart A
+### Marijuana use Vs % of marijuana lyric national level
 
 ```{r}
 songs_abuse_plot=
   songs_abuse%>%
-  filter(outcome=="Illicit drugs other than marijuana use in the last month",area==0)%>%
-  group_by(year,agegrp)%>%
-  summarize(
-  mean_bsae = mean(bsae)
-)%>%
-  ggplot(aes(x = year, y = mean_bsae)) +
-  geom_smooth(aes(color = agegrp), alpha = .5)+
-  labs(title = "Mean percentage of illicit durg other than marijuana by age group",
-         y = "Mean (%) in the past",
+  filter(stname=="National", outcome=="Marijuana use in the past month")%>%
+  group_by(year)%>%
+  ggplot(aes(x = p_lyrics, y = bsae, color = agegrp)) +
+    geom_point() +
+    geom_smooth(aes(group = agegrp), se = F) +
+   labs(title = "Marijuana use Vs % of marijuana lyric national level",
+         y = "Marijuana use in the past(%)",
          color = "agegroup")
 
 ggplotly(songs_abuse_plot)
 ```
 
-Column {data-width=350}
+Column {.tabset data-width=400}
 -----------------------------------------------------------------------
 
-### Chart B
+### Mean prevalence rates (%) of Marijuana use by age group 
 
 ```{r}
 marijuana_plot=
@@ -54,14 +62,14 @@ songs_abuse%>%
 )%>%
   ggplot(aes(x = year, y = mean_bsae)) +
   geom_smooth(aes(color = agegrp), alpha = .5)+
-    labs(title = "Mean perentage of Marijuana use by age group",
-         y = "Mean of Marijuana use (%) ",
+    labs(title = "Mean prevalence rates (%) of Marijuana use by age group",
+         y = "Mean prevalence rates of Marijuana use (%) ",
          color = "agegroup")
 
 ggplotly(marijuana_plot)
 ```
 
-### Chart C
+### Mean prevalence rates (%) of illicit drug other than marijuana by age group
 
 ```{r}
 otherthan_marijuana_plot=
@@ -73,13 +81,63 @@ otherthan_marijuana_plot=
 )%>%
   ggplot(aes(x = year, y = mean_bsae)) +
   geom_smooth(aes(color = agegrp), alpha = .5)+
-  labs(title = "Mean percentage of illicit durg other than marijuana by age group",
-         y = "Mean (%) in the past",
+  labs(title = "Mean prevalence rates (%) of illicit durg other than marijuana by age group",
+         y = "Mean prevalence rates (%) of illicit durg other than marijuana",
          color = "agegroup")
 
 ggplotly(otherthan_marijuana_plot)
 ```
 
+### Mean prevalence rates (%) of binge drinking by age group
+```{r}
+bingedrink_plot=
+songs_abuse%>%
+  filter(outcome=="Binge drinking in the last month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Mean prevalence rates (%) of binge drinking in the past by age group",
+         y = "Mean binge drinking (%) in the past",
+         color = "agegroup")
+
+ggplotly(bingedrink_plot)
+```
 
 
+### Risk perception on smoking marijuana once a month
+```{r}
+risk_plot=
+songs_abuse%>%
+  filter(outcome=="Risk perception on smoking marijuana once a month",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Risk perception on smoking marijuana by age group",
+         y = "Risk perception on smoking marijuana(%) ",
+         color = "agegroup")
 
+ggplotly(risk_plot)
+```
+
+### Annual incidence of first use of marijuana
+```{r}
+incidence_plot=
+songs_abuse%>%
+  filter(outcome=="Annual incidence of first use of marijuana",area==0)%>%
+  group_by(year,agegrp)%>%
+  summarize(
+  mean_bsae = mean(bsae)
+)%>%
+  ggplot(aes(x = year, y = mean_bsae)) +
+  geom_smooth(aes(color = agegrp), alpha = .5)+
+  labs(title = "Annual incidence of first use of marijuana by age group",
+         y = "Annual incidence of first use of marijuana (%) ",
+         color = "agegroup")
+ggplotly(incidence_plot)
+```
