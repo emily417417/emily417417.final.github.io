@@ -17,11 +17,11 @@ navbar:
       href: https://mingkuanxu.shinyapps.io/p8105_final_project/
   right:
     - text: "Project Report"
-      href: proj_report.html
+      href: project_rpt.html
     - icon: fa-youtube
       href: https://www.youtube.com/watch?v=5oObMqzIwXU
     - icon: fa-github fa-lg
       href: https://github.com/rebekahhughes97/p8105_final_proj.github.io.git
 output:
   html_document:
-    theme: lumen
+    theme: cerulean
