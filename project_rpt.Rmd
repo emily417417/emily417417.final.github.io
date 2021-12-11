@@ -68,13 +68,13 @@ Our project uses data from 3 sources as listed below.
 ## Variables of Interest
 
 #### Popular Music Dataset
-- `year`:year of published
+- `year`:year of billboard chart published
 - `lyric`:lyric of the song
 - `genre`:music genre(country,rock,hip hop etc.)
 
 #### Illicit Drug Usage Dataset
-- `year`
-- `agegroup`
+- `pyear`
+- `agegrp`
   - '1' = age 12-17
   - '2' = age 18-25
   - '3' = age >25
@@ -86,10 +86,11 @@ Our project uses data from 3 sources as listed below.
   - Annual incidence of first use of marijuana
   - Binge drinking in the last month
   - Risk perception on smoking marijuana once a month
-- `bsae`: the percentage of outcome behavior in specific age group and area
+- `bsae`: the proportion of outcome behavior in specific age group and area round up to two decimal places
 - `area`
   - '0' = National Level
-  - '1' = State level
+  - '1' = Regionl Level
+  - '2' = State Level
 
 ## Data Cleaning and Wrangling
 
