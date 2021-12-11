@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>Data cleaning step</title>
+
+<script src="site_libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cerulean.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/font-awesome-5.1.0/css/all.css" rel="stylesheet" />
+<link href="site_libs/font-awesome-5.1.0/css/v4-shims.css" rel="stylesheet" />
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Home</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+      <li>
+      <a href="data_cleaning.html">Data Cleaning</a>
+      </li>
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Exploratory Analyses
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="drug_and_music_dashboard.html">Drug &amp; Music dashboard</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="regression.html">
+    Regression Analyses
+  </a>
+</li>
+<li>
+  <a href="https://mingkuanxu.shinyapps.io/p8105_final_project/">Interactive Maps</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="project_rpt.html">Project Report</a>
+</li>
+<li>
+  <a href="https://www.youtube.com/watch?v=5oObMqzIwXU">
+    <span class="fa fa-youtube"></span>
+     
+  </a>
+</li>
+<li>
+  <a href="https://github.com/emily417417/emily417417.final.github.io.git">
+    <span class="fa fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">Data cleaning step</h1>
+
+</div>
+
+
+<p>In this page, the data cleaning process is described.</p>
+<div id="data-source-and-the-data-cleaning-goal" class="section level1">
+<h1>Data source and the data cleaning goal</h1>
+<ul>
+<li><p><strong>Data source</strong></p>
+<ul>
+<li><p><strong>Popular music data</strong>: <a href="https://www.kaggle.com/danield2255/data-on-songs-from-billboard-19992019">Data on Songs from Billboard 1999-2019</a> collected the data of Billboard Hot 100 music chart from July 11, 1999 to July 5, 2019. The data set contains current weeks the song has been on the chart, music genre, peak rank, and full explicit lyrics.</p></li>
+<li><p><strong>Illicit drug usage data</strong>: The NSDUH series, formerly the National Household Survey on Drug Abuse, is the leading source of statistical information on the use of illicit drugs, alcohol, and tobacco and mental health issues in the United States. The population of the NSDUH series is the general civilian population aged 12 and older. Questions include age at first use, as well as lifetime, annual, and past-month use of alcohol, marijuana, and other substances, as well as the perceptions on the substances. In this project, we used <a href="https://www.datafiles.samhsa.gov/dataset/national-survey-drug-use-and-health-2019-nsduh-2019-ds0001">National Survey on Drug Use and Health (NSDUH) 1999-2019</a> to analyse the substance use. The data set is has both state-level and national-level small area estimates (SAEs) and associated confidence intervals.</p></li>
+<li><p><strong>Substance word list</strong>: We included 2 word lists from an addiction center <a href="https://www.addictioncenter.com/">website</a>. They are <a href="https://www.addictioncenter.com/drugs/drug-street-names/">Drug Street Names</a> and <a href="https://www.addictioncenter.com/drugs/drug-alcohol-slang/">Drug And Alcohol Slang Terms</a>.</p></li>
+</ul></li>
+<li><p>The final data for analysis should be:</p>
+<ul>
+<li>A data set combining both substance use information and portrayals of substance use in songs, by year</li>
+<li>A data set describing the frequency and annual rate (with 95% confidence interval) of songs in different genre (hip-hop/R&amp;B, rap, rock, and country) and songs mentioning substances (alcohol, marijuana, other illicit drugs), by year.</li>
+</ul></li>
+</ul>
+</div>
+<div id="cleaning-process" class="section level1">
+<h1>Cleaning process</h1>
+<ul>
+<li>Lyrics
+<ul>
+<li>Music data
+<ul>
+<li>Download the Billboard data from the website using <code>Kaggler</code>. It’s a zip file, so unzip the file and put the data into the data folder. The Billboard data is named as ‘billboard’.<em>The unzip code is put into annotation because of error when knitting. For reproducing the result, please run the code after remove the “#.”</em></li>
+<li>Keep the needed variables, and set all the strings lower case</li>
+<li>Keep the year data</li>
+<li>Because we are going to see the effect of the genre/lyrics instead of the real number of the songs, we did not delete duplicate songs and the data</li>
+<li>To make manual data check easier, keep the name of the songs</li>
+<li>This data set is larger than 100Mb, so it’s not pushed to the repository.</li>
+</ul></li>
+<li>Music genre word list
+<ul>
+<li>The music genre word list is generated from the genre variable from the billboard data. Since there are over 300 genres in the original data set, we manually reclassified these genres into 4 categories: hip-hop/R&amp;B, country, rap, and rock. This classification is adapted from <a href="https://pubmed.ncbi.nlm.nih.gov/18250243/">Primak et al.</a>.</li>
+</ul></li>
+</ul></li>
+</ul>
+<pre class="r"><code>word_bank_genre_raw = pull(billboard, genre) %&gt;%
+  unlist() %&gt;%
+  unique() %&gt;%
+  as_tibble()
+
+write.csv(word_bank_genre_raw, file = &quot;./data/word_bank_genre_raw_ling.csv&quot;)
+
+genre = read_csv(file = &quot;./data/genre.csv&quot;,
+                         col_names = TRUE,
+                         na = &quot;&quot;) %&gt;%
+  select(-...1) %&gt;%
+  group_by(genre_cate) %&gt;%
+  summarise(subgenre = paste(value, collapse = &quot;|&quot;)) %&gt;%
+  drop_na(genre_cate)
+
+country = pull(subset(genre, genre_cate == &quot;country&quot;), subgenre)
+hiphop = pull(subset(genre, genre_cate == &quot;hip-hop/r&amp;;b&quot;), subgenre)
+rap = pull(subset(genre, genre_cate == &quot;rap&quot;), subgenre)
+rock = pull(subset(genre, genre_cate == &quot;rock&quot;), subgenre)</code></pre>
+<ul>
+<li>Substance word list
+<ul>
+<li>Download the word lists from the website using <code>rvest</code> and <code>httr</code>, the 2 lists are named as <code>word_bank_raw</code> and <code>word_bank_raw2</code>, respectively.</li>
+<li>Manually delete the too general terms (i.e., “black” refers to cocaine in some contexts)</li>
+<li>For each sublists, combine the strings together, separated by " | ".</li>
+<li>Combine the sublists describing the same (group of) substance together. Since the data for the substances other than alcohol and marijuana are limited, we combined the words describing the substances other than alcohol or marijuana together, taking <a href="https://pubmed.ncbi.nlm.nih.gov/18250243/">Primak et al.</a> as a reference.</li>
+</ul></li>
+</ul>
+<pre class="r"><code>word_bank_raw = read_html(&quot;https://www.addictioncenter.com/drugs/drug-street-names/&quot;) %&gt;%
+  html_table(header = T)
+
+word_bank_raw2 =  read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
+  html_table(header = F) %&gt;%
+  .[-c(1,2,3)] %&gt;%
+  bind_rows() %&gt;%
+  select(X2) %&gt;%
+  mutate(slang = str_split(str_to_lower(X2), &#39;,&#39;)) %&gt;%
+  select(slang) %&gt;%
+  unlist() %&gt;%
+  as_tibble()
+
+word_bank_alcohol = read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
+  html_table(header = F) %&gt;%
+  nth(2) %&gt;%
+  janitor::clean_names() %&gt;%
+  select(x2) %&gt;%
+  mutate(x2 = str_split(str_to_lower(x2), &#39;,&#39;)) %&gt;%
+  unlist() %&gt;%
+  as_tibble()
+
+write.csv(word_bank_alcohol, file = &quot;./data/alcohol_bank_raw_ling.csv&quot;)
+
+drug_bank &lt;- function(raw , var) {
+  out = raw %&gt;%
+  janitor::clean_names() %&gt;%
+  select({{var}}) %&gt;%
+  mutate(slang = str_split(str_to_lower({{var}}), &#39;,&#39;)) %&gt;%
+  select(slang) %&gt;%
+  unlist() %&gt;%
+  as_tibble()
+  return(out)
+}
+
+illicit_names = word_bank_raw[[3]] %&gt;%
+  janitor::clean_names()
+
+word_bank_bdz = drug_bank(word_bank_raw[[1]], var = street_names)
+word_bank_hallucinogens = drug_bank(word_bank_raw[[2]], var = street_names)
+word_bank_inhalant = drug_bank(word_bank_raw[[4]], var = street_names)
+word_bank_opioid = drug_bank(word_bank_raw[[5]], var = street_names)
+word_bank_overcounter = drug_bank(word_bank_raw[[6]], var = street_names)
+word_bank_marijuana = drug_bank(subset(illicit_names, common_name %in% c(&quot;Marijuana&quot;, &quot;Synthetic Marijuana&quot;)), var = other_names)
+word_bank_illicit = drug_bank(subset(illicit_names, !(common_name %in% c(&quot;Marijuana&quot;, &quot;Synthetic Marijuana&quot;))), var = other_names)
+word_bank_other = bind_rows(word_bank_bdz, word_bank_hallucinogens, word_bank_illicit, word_bank_inhalant, word_bank_opioid, word_bank_overcounter, word_bank_raw2)
+word_bank_marijuana2 = read_html(&quot;https://www.addictioncenter.com/drugs/drug-alcohol-slang/&quot;) %&gt;%
+  html_table(header = F) %&gt;%
+  nth(3) %&gt;%
+  select(X2) %&gt;%
+  mutate(slang = str_split(str_to_lower(X2), &#39;,&#39;)) %&gt;%
+  unlist() %&gt;%
+  as_tibble()
+word_bank_marijuana = bind_rows(word_bank_marijuana, word_bank_marijuana2)
+
+write_csv(word_bank_other, file = &quot;./data/other_illicit_bank_raw_ling.csv&quot;)
+write_csv(word_bank_marijuana, file = &quot;./data/marijuana_bank_raw_ling.csv&quot;)
+
+words_alcohol = read_lines(&quot;./data/alcohol.csv&quot;)
+regex_alcohol = paste(words_alcohol,collapse = &quot; | &quot;)
+
+words_marijuana = read_lines(&quot;./data/marijuana.csv&quot;)
+regex_marijuana = paste(words_marijuana,collapse = &quot; | &quot;)
+
+words_other = read_lines(&quot;./data/other_illicit.csv&quot;)
+regex_other = paste(words_other,collapse = &quot; | &quot;)</code></pre>
+<ul>
+<li>Summarize the song information by year
+<ul>
+<li>substance description data (‘songs’ data)
+<ul>
+<li>this data is cleaned separately to be combined with the substance abuse data</li>
+<li>summarize the frequency of songs mentioning substances in each year</li>
+<li>calculate the 95% confidence interval of the frequencies</li>
+</ul></li>
+<li>substance description and genre data (‘genly_billboard’ data)
+<ul>
+<li>summarize the frequency of song mentioning substances and genre in each year</li>
+<li>calculate the 95% confidence interval of the frequencies</li>
+</ul></li>
+</ul></li>
+</ul>
+<pre class="r"><code>billboard_data = billboard %&gt;%
+   mutate(
+    marijuana = as.numeric(grepl(regex_marijuana,lyrics,ignore.case = TRUE)),
+    alcohol = as.numeric(grepl(regex_alcohol,lyrics,ignore.case = TRUE)),
+    other_illicit = as.numeric(grepl(regex_other,lyrics,ignore.case = TRUE)),
+    gen_country = as.numeric(grepl(country, genre, ignore.case = TRUE)),
+    gen_hiphop = as.numeric(grepl(hiphop, genre, ignore.case = TRUE)),
+    gen_rap = as.numeric(grepl(rap, genre, ignore.case = TRUE)),
+    gen_rock = as.numeric(grepl(rock, genre, ignore.case = TRUE))
+    ) %&gt;%
+    select(-lyrics, -genre) 
+
+
+write_csv(billboard_data, file = &quot;./data/billboard_cleaned.csv&quot;, col_names = TRUE)
+
+songs = billboard_data %&gt;%
+    pivot_longer(cols = c(&quot;marijuana&quot;, &quot;alcohol&quot;,&quot;other_illicit&quot;),
+                 names_to = &quot;lyr_des&quot;,
+                 values_to = &quot;lyric_yn&quot;) %&gt;%
+    group_by(year, lyr_des) %&gt;%
+    summarise(n_lyrics = sum(lyric_yn == 1),
+              total = n()) %&gt;%
+    mutate(p_result = map2(.x = n_lyrics, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+           p_lyrics = 100*(unlist(map(p_result, pluck(&quot;estimate&quot;)))),
+           p_ci = map(p_result, pluck(&quot;conf.int&quot;))) %&gt;%
+    unnest_wider(p_ci) %&gt;%
+    rename(&quot;p_lci&quot; = &quot;...1&quot;,
+           &quot;p_uci&quot; = &quot;...2&quot;) %&gt;%
+    mutate(p_lci = 100 * p_lci,
+           p_uci = 100 * p_uci,
+           year = as.numeric(year)) %&gt;%
+    select(-p_result)
+
+knitr::kable(songs[1:5, ])</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">year</th>
+<th align="left">lyr_des</th>
+<th align="right">n_lyrics</th>
+<th align="right">total</th>
+<th align="right">p_lyrics</th>
+<th align="right">p_lci</th>
+<th align="right">p_uci</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="right">330</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">other_illicit</td>
+<td align="right">574</td>
+<td align="right">2233</td>
+<td align="right">25.705329</td>
+<td align="right">23.913723</td>
+<td align="right">27.581410</td>
+</tr>
+<tr class="even">
+<td align="right">2000</td>
+<td align="left">alcohol</td>
+<td align="right">186</td>
+<td align="right">4822</td>
+<td align="right">3.857321</td>
+<td align="right">3.339821</td>
+<td align="right">4.449679</td>
+</tr>
+<tr class="odd">
+<td align="right">2000</td>
+<td align="left">marijuana</td>
+<td align="right">854</td>
+<td align="right">4822</td>
+<td align="right">17.710494</td>
+<td align="right">16.648693</td>
+<td align="right">18.824194</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>genly_billboard = billboard_data %&gt;%
+  pivot_longer(cols = c(&quot;marijuana&quot;, &quot;alcohol&quot;,&quot;other_illicit&quot;),
+                 names_to = &quot;lyr_des&quot;,
+                 values_to = &quot;lyric_yn&quot;) %&gt;%
+  pivot_longer(cols = starts_with(&quot;gen_&quot;),
+               names_to = &quot;gen_cate&quot;,
+               values_to = &quot;gen_yn&quot;) %&gt;%
+  mutate(lyr_gen = as_factor(paste(lyr_des, gen_cate, sep = &quot;,&quot;)),
+         lyr_gen_yn = if_else(lyric_yn == 1 &amp; gen_yn == 1, 1, 0)) %&gt;%
+  group_by(lyr_gen, year, gen_cate) %&gt;%
+  summarize(n_lyr = sum(lyric_yn == 1),
+            total = n(),
+            n_gen = sum(gen_yn == 1),
+            n_lyr_gen = sum(lyr_gen_yn == 1)) %&gt;%
+  mutate(p_lyr_res = map2(.x = n_lyr, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrics = 100 * unlist(map(p_lyr_res, pluck(&quot;estimate&quot;))),
+         p_lyr_ci = map(p_lyr_res, pluck(&quot;conf.int&quot;)),
+         p_lyr_lci = 100 * min(unlist(p_lyr_ci)),
+         p_lyr_uci = 100 * max(unlist(p_lyr_ci)),
+         p_gen_res = map2(.x = n_gen, .y = total, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_genre = 100 * unlist(map(p_gen_res, pluck(&quot;estimate&quot;))),
+         p_gen_ci = map(p_gen_res, pluck(&quot;conf.int&quot;)),
+         p_gen_lci = 100 * min(unlist(p_gen_ci)),
+         p_gen_uci = 100 * max(unlist(p_gen_ci)),
+         p_lyrgen_res = map2(.x = n_lyr_gen, .y = n_gen, ~prop.test(.x, .y, conf.level = 0.95)),
+         p_lyrgen = 100 * unlist(map(p_lyrgen_res, pluck(&quot;estimate&quot;))),
+         p_lyrgen_ci = map(p_lyrgen_res, pluck(&quot;conf.int&quot;)),
+         p_lyrgen_lci = 100 * min(unlist(p_lyrgen_ci)),
+         p_lyrgen_uci = 100 * max(unlist(p_lyrgen_ci)),
+         lyr_des = str_split(lyr_gen, &quot;,&quot;),
+         lyr_des = first(unlist(lyr_des)),
+         year = as.numeric(year),
+         gen_cate = str_replace(gen_cate, &quot;hip-hop&quot;,&quot;hip-hop/RnB&quot;)) %&gt;%
+  select(-p_lyr_res, -p_lyr_ci, -p_gen_res, -p_gen_ci, -p_lyrgen_res,-p_lyrgen_ci) %&gt;%
+  arrange(year) %&gt;%
+  relocate(year, lyr_des, gen_cate, lyr_gen, n_lyr, n_gen, n_lyr_gen)
+
+write_csv(genly_billboard, file = &quot;./data/genly_billboard.csv&quot;, col_names = TRUE)
+
+knitr::kable(genly_billboard[1:5, ])</code></pre>
+<table>
+<colgroup>
+<col width="2%" />
+<col width="5%" />
+<col width="6%" />
+<col width="12%" />
+<col width="3%" />
+<col width="3%" />
+<col width="5%" />
+<col width="3%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="7%" />
+<col width="7%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">year</th>
+<th align="left">lyr_des</th>
+<th align="left">gen_cate</th>
+<th align="left">lyr_gen</th>
+<th align="right">n_lyr</th>
+<th align="right">n_gen</th>
+<th align="right">n_lyr_gen</th>
+<th align="right">total</th>
+<th align="right">p_lyrics</th>
+<th align="right">p_lyr_lci</th>
+<th align="right">p_lyr_uci</th>
+<th align="right">p_genre</th>
+<th align="right">p_gen_lci</th>
+<th align="right">p_gen_uci</th>
+<th align="right">p_lyrgen</th>
+<th align="right">p_lyrgen_lci</th>
+<th align="right">p_lyrgen_uci</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="left">gen_country</td>
+<td align="left">marijuana,gen_country</td>
+<td align="right">330</td>
+<td align="right">419</td>
+<td align="right">46</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">18.76399</td>
+<td align="right">17.17718</td>
+<td align="right">20.45958</td>
+<td align="right">10.978520</td>
+<td align="right">8.2280457</td>
+<td align="right">14.465945</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="left">gen_hiphop</td>
+<td align="left">marijuana,gen_hiphop</td>
+<td align="right">330</td>
+<td align="right">550</td>
+<td align="right">60</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">24.63054</td>
+<td align="right">22.86625</td>
+<td align="right">26.48306</td>
+<td align="right">10.909091</td>
+<td align="right">8.4888652</td>
+<td align="right">13.890341</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="left">gen_rap</td>
+<td align="left">marijuana,gen_rap</td>
+<td align="right">330</td>
+<td align="right">403</td>
+<td align="right">141</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">18.04747</td>
+<td align="right">16.48607</td>
+<td align="right">19.72016</td>
+<td align="right">34.987593</td>
+<td align="right">30.3736821</td>
+<td align="right">39.892517</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">marijuana</td>
+<td align="left">gen_rock</td>
+<td align="left">marijuana,gen_rock</td>
+<td align="right">330</td>
+<td align="right">611</td>
+<td align="right">92</td>
+<td align="right">2233</td>
+<td align="right">14.778325</td>
+<td align="right">13.345456</td>
+<td align="right">16.334007</td>
+<td align="right">27.36229</td>
+<td align="right">25.53136</td>
+<td align="right">29.27192</td>
+<td align="right">15.057283</td>
+<td align="right">12.3652868</td>
+<td align="right">18.198439</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="left">gen_country</td>
+<td align="left">alcohol,gen_country</td>
+<td align="right">39</td>
+<td align="right">419</td>
+<td align="right">5</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="right">18.76399</td>
+<td align="right">17.17718</td>
+<td align="right">20.45958</td>
+<td align="right">1.193317</td>
+<td align="right">0.4401442</td>
+<td align="right">2.926512</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>NSDUH data
+<ul>
+<li>download the data and load the SAS file</li>
+<li>clean the names</li>
+<li>keep the variables needed</li>
+<li>restrict the outcomes of interest, restrict the age groups (12-18 years old, 18-25 years old, 26 years and older)</li>
+<li>clean the values, and change the proportions into percentage</li>
+<li>take the beginning year of each survey as the year as identifier</li>
+</ul></li>
+</ul>
+<pre class="r"><code>download.file(url = &quot;https://www.datafiles.samhsa.gov/sites/default/files/NSDUH_files/SAE/NSDUH_99_19_state_saes_final.sas7bdat&quot;, 
+                      destfile = &quot;./data/abuse.sas7bdat&quot;, mode = &quot;wb&quot;)
+abuse_df = read_sas(data_file = &quot;./data/abuse.sas7bdat&quot;)
+abuse = abuse_df %&gt;%
+  janitor::clean_names() %&gt;%
+  select(pyear,agegrp,outcome,area,bsae, low_sae, up_sae, stname, state, pyearnm) %&gt;%
+  filter(outcome %in% c(&quot;COCYR&quot;, &quot;IEMMON&quot;,&quot;MRJMON&quot;,&quot;SUMMON&quot;,&quot;INCIDENCE&quot;,&quot;BNGALC&quot;,&quot;RISKMJ&quot;,&quot;BNGDRK&quot;) &amp; pyear != &quot;11&quot; &amp; agegrp %in% c(1,2,3)) %&gt;%
+  mutate(outcome = fct_recode(as_factor(outcome), &quot;Cocaine use in the last year&quot; = &quot;COCYR&quot;,
+                                                  &quot;Illicit drugs other than marijuana use in the last month&quot; = &quot;IEMMON&quot;,
+                                                  &quot;Marijuana use in the past month&quot; = &quot;MRJMON&quot;,
+                                                  &quot;Any illicit drug use in the last month&quot; = &quot;SUMMON&quot;,
+                                                  &quot;Annual incidence of first use of marijuana&quot; = &quot;INCIDENCE&quot;,
+                                                  &quot;Binge drinking in the last month&quot; = &quot;BNGALC&quot;,
+                                                  &quot;Binge drinking in the last month&quot; = &quot;BNGDRK&quot;,
+                                                  &quot;Risk perception on smoking marijuana once a month&quot; = &quot;RISKMJ&quot;),
+         year = as.numeric(substr(pyearnm,1,4)),
+         pyearnm = substr(pyearnm, 1,9),
+         pyearnm = fct_reorder(as.factor(pyearnm), pyear),
+         agegrp = fct_recode(as_factor(agegrp), &quot;12-17 y/o&quot; = &quot;1&quot;,
+                                                &quot;18-25 y/o&quot; = &quot;2&quot;,
+                                                &quot;&gt;=26 y/o&quot; = &quot;3&quot;),
+         area = as.factor(area),
+         stname = as.factor(stname),
+         bsae = 100 * bsae,
+         low_sae = 100 * low_sae,
+         up_sae = 100 * up_sae,
+         ) %&gt;%
+  select(-pyear, -state) %&gt;%
+  drop_na(bsae)
+
+knitr::kable(abuse[1:5, ])</code></pre>
+<table>
+<colgroup>
+<col width="10%" />
+<col width="34%" />
+<col width="5%" />
+<col width="8%" />
+<col width="8%" />
+<col width="8%" />
+<col width="9%" />
+<col width="10%" />
+<col width="5%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">agegrp</th>
+<th align="left">outcome</th>
+<th align="left">area</th>
+<th align="right">bsae</th>
+<th align="right">low_sae</th>
+<th align="right">up_sae</th>
+<th align="left">stname</th>
+<th align="left">pyearnm</th>
+<th align="right">year</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">12-17 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">10.2492</td>
+<td align="right">9.9335</td>
+<td align="right">10.5713</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+<td align="right">1999</td>
+</tr>
+<tr class="even">
+<td align="left">18-25 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">37.7752</td>
+<td align="right">37.2044</td>
+<td align="right">38.3486</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+<td align="right">1999</td>
+</tr>
+<tr class="odd">
+<td align="left">&gt;=26 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">18.8697</td>
+<td align="right">18.3599</td>
+<td align="right">19.3876</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+<td align="right">1999</td>
+</tr>
+<tr class="even">
+<td align="left">12-17 y/o</td>
+<td align="left">Cocaine use in the last year</td>
+<td align="left">0</td>
+<td align="right">1.6720</td>
+<td align="right">1.5307</td>
+<td align="right">1.8226</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+<td align="right">1999</td>
+</tr>
+<tr class="odd">
+<td align="left">18-25 y/o</td>
+<td align="left">Cocaine use in the last year</td>
+<td align="left">0</td>
+<td align="right">4.7287</td>
+<td align="right">4.4751</td>
+<td align="right">4.9922</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+<td align="right">1999</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Combine the songs data and the abuse data</li>
+</ul>
+<pre class="r"><code># individual song data
+
+# connnect the songs and the abuse data
+songs_abuse = left_join(songs, abuse, by = &quot;year&quot;)
+
+write_csv(songs_abuse, file = &quot;./data/songs_abuse.csv&quot;, col_names = TRUE)
+
+knitr::kable(songs_abuse[1:5, ])</code></pre>
+<table>
+<colgroup>
+<col width="3%" />
+<col width="5%" />
+<col width="6%" />
+<col width="4%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="6%" />
+<col width="22%" />
+<col width="3%" />
+<col width="5%" />
+<col width="5%" />
+<col width="5%" />
+<col width="6%" />
+<col width="6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="right">year</th>
+<th align="left">lyr_des</th>
+<th align="right">n_lyrics</th>
+<th align="right">total</th>
+<th align="right">p_lyrics</th>
+<th align="right">p_lci</th>
+<th align="right">p_uci</th>
+<th align="left">agegrp</th>
+<th align="left">outcome</th>
+<th align="left">area</th>
+<th align="right">bsae</th>
+<th align="right">low_sae</th>
+<th align="right">up_sae</th>
+<th align="left">stname</th>
+<th align="left">pyearnm</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="left">12-17 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">10.2492</td>
+<td align="right">9.9335</td>
+<td align="right">10.5713</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="left">18-25 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">37.7752</td>
+<td align="right">37.2044</td>
+<td align="right">38.3486</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="left">&gt;=26 y/o</td>
+<td align="left">Binge drinking in the last month</td>
+<td align="left">0</td>
+<td align="right">18.8697</td>
+<td align="right">18.3599</td>
+<td align="right">19.3876</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+</tr>
+<tr class="even">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="left">12-17 y/o</td>
+<td align="left">Cocaine use in the last year</td>
+<td align="left">0</td>
+<td align="right">1.6720</td>
+<td align="right">1.5307</td>
+<td align="right">1.8226</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+</tr>
+<tr class="odd">
+<td align="right">1999</td>
+<td align="left">alcohol</td>
+<td align="right">39</td>
+<td align="right">2233</td>
+<td align="right">1.746529</td>
+<td align="right">1.261275</td>
+<td align="right">2.404267</td>
+<td align="left">18-25 y/o</td>
+<td align="left">Cocaine use in the last year</td>
+<td align="left">0</td>
+<td align="right">4.7287</td>
+<td align="right">4.4751</td>
+<td align="right">4.9922</td>
+<td align="left">National</td>
+<td align="left">1999-2000</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Now the whole data cleaning process is completed
+<ul>
+<li>The songs_abuse data include the substance description frequency and substance abuse information in each year, from 1999 to 2019</li>
+<li>The genly_billboard data include the genre frequency in each year and the substance description frequency in each genre each year, from 1999 to 2019</li>
+</ul></li>
+</ul>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

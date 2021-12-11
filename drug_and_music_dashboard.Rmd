@@ -5,6 +5,7 @@ output:
     orientation: columns
     vertical_layout: scroll
     source_code: embed
+    theme: cosmo
 ---
 ```{r setup, include=FALSE}
 library(flexdashboard)

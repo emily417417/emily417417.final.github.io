@@ -3,6 +3,8 @@ output_dir: "."
 navbar:
   title: "Home"
   left:
+    - text: "Data Cleaning"
+      href: data_cleaning.html
     - text: "Exploratory Analyses"
       menu:
         - text: "Drug & Music dashboard"
