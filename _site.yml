@@ -17,7 +17,7 @@ navbar:
     - text: "Project Report"
       href: project_rpt.html
     - icon: fa-youtube
-      href: 
+      href: https://www.youtube.com/watch?v=aTMgxMc6yKM
     - icon: fa-github fa-lg
       href: https://github.com/emily417417/emily417417.final.github.io.git
 output:
